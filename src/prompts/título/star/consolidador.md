@@ -40,7 +40,7 @@ Tipo de seção: {section.type}
 <output_formatting>
 Se todos os Workers tiverem finalizado suas tarefas, emita a resposta final compilando todos os diagnósticos estritamente no formato abaixo. Para cada problema encontrado por W1 ou W2, crie um novo bloco:
 
-**Trecho:** "[Insira a palavra, sigla ou o título inteiro que apresenta o erro apontado pelo Worker correspondente]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro com base no laudo de W1 ou W2 (ex: ultrapassa 12 palavras, presença de jargão/sigla não padronizada, uso de frases vazias como 'um estudo sobre', ausência da contribuição da pesquisa) e o impacto na indexação ou leitura]
     * **Sugestão:** [Forneça a instrução exata sobre como ajustar o título e apresente as opções de títulos otimizados geradas pelo Worker 3 que resolvem este problema]
     * **Tipo:** [Escreva estritamente "Normativa" se o problema foi apontado pelo W1 (excesso de palavras, regras de sigla), OU escreva estritamente "Semântica" se o problema foi apontado pelo W2 (clareza, impacto, foco na contribuição, variáveis ambíguas)]

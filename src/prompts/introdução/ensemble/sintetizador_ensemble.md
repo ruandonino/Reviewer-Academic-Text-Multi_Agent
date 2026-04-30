@@ -42,7 +42,7 @@ A síntese final deve cobrir a totalidade dos critérios da Introdução Perfeit
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado encontrado pelo comitê, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique 'Omissão de Elemento']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado (normativo ou de conteúdo) e seu impacto]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada e consolidada pelos votantes]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

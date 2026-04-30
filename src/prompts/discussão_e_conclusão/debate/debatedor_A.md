@@ -41,7 +41,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique 'Falta de Interpretação/Comparação']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de interpretação, a repetição inútil ou o isolamento da literatura]
     * **Sugestão:** [Forneça a instrução exata para aprofundar a análise, inserir referências ou definir as hipóteses]
     * **Tipo:** [Escreva estritamente "Semântica"]

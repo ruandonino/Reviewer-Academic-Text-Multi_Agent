@@ -34,7 +34,7 @@ Sua avaliação foca nestes critérios iniciais:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase repetitiva ou indique 'Omissão de Avaliação de Hipóteses']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de repetição inútil ou a falta de fechamento das hipóteses/objetivos]
     * **Sugestão:** [Forneça a instrução exata para aprofundar a análise ou inserir a declaração de hipóteses ausente]
     * **Tipo:** [Escreva estritamente "Semântica"]

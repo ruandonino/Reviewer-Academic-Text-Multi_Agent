@@ -37,7 +37,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a proposta de trabalho técnico ou indique 'Omissão de Limitações/Trabalhos Futuros']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a falta de honestidade crítica nas limitações ou o desvio de propostas futuras para o lado puramente técnico/engenharia]
     * **Sugestão:** [Forneça a instrução exata para exigir a discussão de viés/fraquezas ou redirecionar os trabalhos futuros para novas linhas de pesquisa]
     * **Tipo:** [Escreva estritamente "Semântica"]

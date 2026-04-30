@@ -45,7 +45,7 @@ O veredito final deve cobrir a totalidade dos critérios da Metodologia:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique 'Omissão Metodológica']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado pelo juízo abordando normas, ética ou semântica/validação]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada definitiva ou instrução de preenchimento de lacuna]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

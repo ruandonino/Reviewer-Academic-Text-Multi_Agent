@@ -43,7 +43,7 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Omissão no Parágrafo Final' caso seja uma ausência de elemento estrutural]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro com base nos critérios de avaliação (ex: quebra da estrutura de funil, hipótese não justificada, ausência de ponte metodológica) e o impacto na qualidade do artigo]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada ou a instrução específica sobre como e onde inserir o conteúdo ausente]
     * **Tipo:** [Escreva estritamente "Normativa" se o erro for a violação de um estilo formal/citação ou a ausência de elementos estruturais formais exigidos (ex: parágrafo de organização do documento), OU escreva estritamente "Semântica" se o erro for de coesão lógica, fluidez argumentativa, justificativa fraca ou erro na estrutura de funil]

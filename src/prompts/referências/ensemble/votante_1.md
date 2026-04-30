@@ -32,7 +32,7 @@ Sua avaliação foca neste critério:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a referência incompleta ou mutilada]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o dado que falta, como ano, volume, editora, ou página]
     * **Sugestão:** [Forneça a instrução exata do que o autor deve buscar ou inserir para completar a fonte]
     * **Tipo:** [Escreva estritamente "Semântica"]

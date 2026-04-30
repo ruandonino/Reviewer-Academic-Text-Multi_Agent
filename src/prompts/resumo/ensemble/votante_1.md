@@ -36,7 +36,7 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, a palavra ou indique 'Omissão de Elemento' caso seja uma ausência estrutural]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de abrangência ou resultado vago e seu impacto]
     * **Sugestão:** [Forneça a instrução exata para corrigir a omissão ou adicionar concretude aos resultados]
     * **Tipo:** [Escreva estritamente "Semântica"]

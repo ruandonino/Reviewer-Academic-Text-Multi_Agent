@@ -46,7 +46,7 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, a palavra ou indique 'Omissão de Elemento' caso seja uma ausência estrutural]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro com base nos critérios de avaliação (ex: quebra de limite de palavras, uso de citação, resultado vago) e o impacto na qualidade do resumo]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada, garantindo que atenda a todos os critérios, ou a instrução exata de remoção]
     * **Tipo:** [Escreva estritamente "Normativa" se o erro violar regras de formatação (ex: mais de 250 palavras, mais de um parágrafo, presença de citações) OU escreva estritamente "Semântica" se o erro for de conteúdo, clareza, resultados vagos ou falta de foco/abrangência]

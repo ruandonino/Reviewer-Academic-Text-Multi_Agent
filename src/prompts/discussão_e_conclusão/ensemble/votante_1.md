@@ -38,7 +38,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique 'Falta de Interpretação/Avaliação das Hipóteses']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de interpretação, a repetição de resultados ou a falta de articulação da contribuição]
     * **Sugestão:** [Forneça a sugestão de reescrita para aprofundar a análise, conectar com os objetivos ou evidenciar a contribuição]
     * **Tipo:** [Escreva estritamente "Semântica"]

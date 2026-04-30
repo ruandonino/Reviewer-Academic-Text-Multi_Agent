@@ -39,7 +39,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, estatística incompleta ou indique 'Omissão Técnica/Estatística']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de relato estatístico (falta de gl, efeito, IC), a omissão de resultados ou falha de transparência na amostra]
     * **Sugestão:** [Forneça a instrução exata do formato estatístico exigido ou os dados de fluxo/omissos que devem ser inseridos]
     * **Tipo:** [Escreva "Normativa" para falhas de formato estatístico/fluxo, ou "Semântica" para viés de omitir resultados nulos]

@@ -41,7 +41,7 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira o trecho exato, ou indique 'Omissão de Elemento Metodológico' caso seja uma ausência de informação crítica]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro metodológico com base nos critérios de avaliação (ex: falta de definição operacional da variável, hardware/software não especificados, ausência de aprovação ética, tamanho da amostra não justificado) e o impacto na reprodutibilidade do estudo]
     * **Sugestão:** [Forneça a instrução exata sobre que dados técnicos devem ser inseridos, como descrever a métrica corretamente ou como reformular a justificativa]
     * **Tipo:** [Escreva estritamente "Normativa" se o erro for a omissão de um elemento formal obrigatório (ex: declaração de comitê de ética, documentação de versões de software/ferramentas), OU escreva estritamente "Semântica" se o erro for de raciocínio metodológico, desenho de pesquisa mal articulado, justificativa fraca, variáveis mal definidas ou viés de amostragem]

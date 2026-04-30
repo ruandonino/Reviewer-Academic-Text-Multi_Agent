@@ -45,7 +45,7 @@ A síntese final deve cobrir a totalidade dos critérios do Referencial Teórico
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado encontrado pelo comitê, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique 'Problema de Estrutura/Interseção']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado (normativo ou semântico) e seu impacto]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada, reorganização de conceitos ou correção ética, consolidada pelos votantes]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

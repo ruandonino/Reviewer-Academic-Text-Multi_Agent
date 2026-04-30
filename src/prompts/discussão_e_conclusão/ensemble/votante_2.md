@@ -34,7 +34,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase generalista ou indique 'Falta de Contextualização/Generalização']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o isolamento da discussão da literatura prévia ou a falha em discutir a validade externa]
     * **Sugestão:** [Forneça a instrução exata para adicionar comparações com autores anteriores ou discutir os limites de aplicação dos achados]
     * **Tipo:** [Escreva estritamente "Semântica"]

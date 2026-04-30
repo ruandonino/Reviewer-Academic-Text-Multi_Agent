@@ -42,7 +42,7 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a palavra, expressão ou o título inteiro que apresenta o problema]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro com base nos critérios de avaliação (ex: título com 15 palavras, uso de sigla não padronizada, título genérico sem contribuição) e o impacto na indexação/leitura]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada, garantindo que atenda a todos os critérios, ou a instrução exata de remoção de palavras supérfluas]
     * **Tipo:** [Escreva estritamente "Normativa" se o erro violar regras de tamanho (mais de 12 palavras) ou convenções de formatação/siglas, OU escreva estritamente "Semântica" se o erro for de clareza, ambiguidade, presença de termos vazios ("termos genéricos") ou falta de foco na contribuição da pesquisa]

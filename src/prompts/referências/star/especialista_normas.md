@@ -38,7 +38,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a referência mal formatada, fora de ordem ou indique 'Falha de Estilo']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de ordem alfabética, convenção ou inconsistência de formatação]
     * **Sugestão:** [Forneça a instrução exata para reformatar a entrada ou organizá-la na lista]
     * **Tipo:** [Escreva estritamente "Normativa"]

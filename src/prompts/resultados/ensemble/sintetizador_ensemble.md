@@ -42,7 +42,7 @@ A síntese final deve cobrir a totalidade dos critérios dos Resultados:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado encontrado pelo comitê, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, a estatística incompleta ou indique 'Omissão Empírica/Fluxo']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado estatístico, narrativo ou de transparência amostral e seu impacto]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada, formato numérico exato exigido ou dados faltantes consolidados]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

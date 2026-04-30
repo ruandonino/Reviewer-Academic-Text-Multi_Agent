@@ -39,7 +39,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase opinativa, especulativa ou indique 'Repetição Inútil de Tabela/Viés de Omissão']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a invasão no terreno da discussão, a falta de narrativa de tendências ou a ocultação de achados não significativos]
     * **Sugestão:** [Forneça a instrução de remover o juízo de valor (movendo para a Discussão), ou de focar em analisar os padrões em vez dos números literais]
     * **Tipo:** [Escreva estritamente "Semântica"]

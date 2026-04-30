@@ -34,7 +34,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a referência incompleta ou indique 'Alerta de Correspondência com o Texto']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o dado que falta (ano, editora, página) ou o risco de referências fantasmas]
     * **Sugestão:** [Forneça a instrução exata do que o autor deve buscar ou como realizar o cruzamento entre texto e lista]
     * **Tipo:** [Escreva estritamente "Semântica"]

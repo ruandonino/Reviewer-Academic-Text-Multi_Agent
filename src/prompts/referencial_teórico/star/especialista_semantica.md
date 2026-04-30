@@ -46,7 +46,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique o problema geral de macroestrutura]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro semântico, como formato de lista, ausência de crítica, falsa originalidade ou interseção esquecida]
     * **Sugestão:** [Forneça a sugestão de reestruturação conceitual, comparação crítica ou busca de literatura cruzada]
     * **Tipo:** [Escreva estritamente "Semântica"]

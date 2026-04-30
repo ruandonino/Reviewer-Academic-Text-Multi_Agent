@@ -39,7 +39,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase ou expressão que apresenta o problema]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro semântico, viés avaliativo ou falta de um elemento obrigatório do resumo]
     * **Sugestão:** [Forneça a sugestão de reescrita para melhorar o fluxo ou inclua a instrução sobre qual elemento acadêmico deve ser adicionado]
     * **Tipo:** [Escreva estritamente "Semântica"]

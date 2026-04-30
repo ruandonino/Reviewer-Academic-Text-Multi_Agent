@@ -47,7 +47,7 @@ A síntese final deve cobrir a totalidade dos critérios de Discussão e Conclus
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado encontrado pelo comitê, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique 'Omissão de Análise Crítica/Limitações/Comparação']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado (semântico) e seu impacto no fechamento da pesquisa]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada, exigindo interpretação profunda, citação bibliográfica, ou foco em pesquisa futura]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Semântica"]

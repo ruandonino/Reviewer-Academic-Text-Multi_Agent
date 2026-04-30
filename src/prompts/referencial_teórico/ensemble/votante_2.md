@@ -38,7 +38,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Falha Analítica/Metodológica']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a falta de síntese crítica, falsa originalidade ou ausência de interseção]
     * **Sugestão:** [Forneça a sugestão de como conectar os autores, apontar lacunas ou que literatura buscar]
     * **Tipo:** [Escreva estritamente "Semântica"]

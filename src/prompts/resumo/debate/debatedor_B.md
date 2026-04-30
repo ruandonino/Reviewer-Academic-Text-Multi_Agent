@@ -38,7 +38,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, a palavra ou indique 'Erro de Formatação']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro estrutural, quebra de limite, citação indevida ou falha de tom acadêmico]
     * **Sugestão:** [Forneça a instrução exata de remoção de palavras, exclusão de citação ou ajuste de verbo/tom]
     * **Tipo:** [Escreva "Normativa" para limite de palavras/parágrafos/citações, ou "Semântica" para tom e tempos verbais]

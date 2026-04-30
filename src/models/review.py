@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class Observation(BaseModel):
-    quote: str = Field(description="O trecho exato do texto original sendo criticado.")
+    quote: str = Field(description="A referência ou o trecho que apresenta a falha.")
     issue: str = Field(description="Descrição do problema normativo ou semântico identificado.")
     suggestion: str = Field(description="Sugestão acionável de melhoria.")
     type: str = Field(description="Tipo da observação: 'Normativa' ou 'Semântica'", enum=["Normativa", "Semântica"])

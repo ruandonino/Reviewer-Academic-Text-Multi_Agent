@@ -42,7 +42,7 @@ O veredito final deve cobrir a totalidade dos critérios de Resultados:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, a estatística falha ou indique 'Omissão Empírica']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado pelo juízo abordando falha estatística, especulação teórica indevida ou repetição de tabela]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada definitiva (como detalhar estatística, analisar o dado em vez de ler tabela)]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

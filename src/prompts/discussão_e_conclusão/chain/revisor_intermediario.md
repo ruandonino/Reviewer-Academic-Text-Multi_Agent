@@ -36,7 +36,7 @@ Sua avaliação foca nestes critérios complementares:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final (substituindo a revisão anterior pela sua versão aprimorada) utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira a frase isolada de teoria ou indique 'Omissão de Contexto/Contribuição']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a falta de contraste com a literatura (ex: falha em confirmar/desafiar autores) ou a confusão na apresentação da contribuição]
     * **Sugestão:** [Forneça a instrução para adicionar citações comparativas ou estruturar as contribuições primárias e secundárias]
     * **Tipo:** [Escreva estritamente "Semântica"]

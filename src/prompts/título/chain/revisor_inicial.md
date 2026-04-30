@@ -36,7 +36,7 @@ Sua avaliação foca nestes critérios iniciais:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a palavra, expressão ou o título inteiro que apresenta o problema]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro e seu impacto]
     * **Sugestão:** [Forneça a sugestão de reescrita ou instrução de remoção]
     * **Tipo:** [Classifique o tipo de problema, ex: Normativa ou Semântica]

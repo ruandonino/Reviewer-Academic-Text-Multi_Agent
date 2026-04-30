@@ -36,7 +36,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase ou indique 'Omissão de Escopo/Estrutura/Ponte']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a ausência dos elementos finais obrigatórios ou a antecipação indevida de resultados]
     * **Sugestão:** [Forneça a instrução exata para adicionar os parágrafos de fechamento ausentes]
     * **Tipo:** [Escreva "Normativa" para ausência de estrutura ou "Semântica" para antecipação de resultados]

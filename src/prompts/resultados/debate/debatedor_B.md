@@ -40,7 +40,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase especulativa, a repetição inútil de tabela ou indique 'Dados Brutos']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de incluir especulação ampla, falta de narrativa analítica ou poluição com dados brutos]
     * **Sugestão:** [Forneça a instrução exata para neutralizar o texto, transferir a especulação para a Discussão ou promover a explicação técnica dos dados]
     * **Tipo:** [Escreva "Normativa" para inclusão de dados brutos, ou "Semântica" para especulação indevida e falta de narrativa]

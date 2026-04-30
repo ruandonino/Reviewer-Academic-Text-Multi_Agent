@@ -41,7 +41,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a afirmação universalista, a lista técnica ou indique 'Omissão de Limitações']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o viés de não apontar falhas, generalização indevida ou trabalhos futuros ruins]
     * **Sugestão:** [Forneça a sugestão exata para exigir a discussão das fraquezas ou redirecionar a pesquisa futura]
     * **Tipo:** [Escreva estritamente "Semântica"]

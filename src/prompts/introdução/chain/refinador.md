@@ -41,7 +41,7 @@ Sua avaliação abrange a totalidade dos critérios da Introdução:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final, consolidando todas as críticas válidas da cadeia, utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira a frase ou indique 'Omissão no Parágrafo Final']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado, omissão estrutural ou antecipação de resultados]
     * **Sugestão:** [Forneça a sugestão de reescrita definitiva ou instrução de inclusão de elementos]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

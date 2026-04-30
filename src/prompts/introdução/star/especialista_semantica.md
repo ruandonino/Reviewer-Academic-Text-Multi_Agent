@@ -41,7 +41,7 @@ Sua avaliação final deve ser estritamente pautada nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Falta de Argumentação/Lacuna']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro lógico, a fraqueza da argumentação ou a ausência de justificativa teórica e seu impacto]
     * **Sugestão:** [Forneça a sugestão de reescrita focada em fortalecer a lógica, a importância ou a conexão entre literatura e hipótese]
     * **Tipo:** [Escreva estritamente "Semântica"]

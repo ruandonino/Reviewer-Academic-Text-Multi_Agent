@@ -44,7 +44,7 @@ O veredito final deve cobrir a totalidade dos critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado, crie um novo bloco:
 
-**Trecho:** "[Insira o trecho exato ou indique 'Problema Estrutural']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado abordando normas e/ou semântica]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada e definitiva]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

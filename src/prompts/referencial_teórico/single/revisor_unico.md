@@ -45,7 +45,7 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Problema Estrutural no Texto' caso seja uma falha global como a ausência de interseção]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro com base nos critérios de avaliação (ex: formato de lista por autores, falta de síntese crítica, citação direta excessiva, afirmação de falsa originalidade) e o impacto na fundamentação]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada, ou a instrução específica sobre como reestruturar o parágrafo para focar no conceito, ou que tipo de literatura deve ser buscada para cobrir a interseção]
     * **Tipo:** [Escreva estritamente "Normativa" se o erro for a violação de regras de citação (APA/ABNT), excesso de citações diretas ou afirmações sem fontes, OU escreva estritamente "Semântica" se o erro for de organização textual (por autor em vez de conceito), falta de análise crítica, fuga do tema, falsa originalidade ou ausência da interseção de áreas]

@@ -27,7 +27,7 @@ Analisar a natureza informativa, o foco na contribuição e a precisão do títu
 <output_formatting>
 Retorne seus achados estritamente neste formato para que o Orquestrador possa capturá-los. Para cada erro semântico, crie um bloco:
 
-**Trecho:** "[Insira a expressão vazia, o jargão obscuro, ou o título todo se o erro for falta de foco na contribuição]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
 **Problema Semântico:** [Explique claramente que o uso de frases como 'um estudo sobre' rouba espaço valioso, OU que o título apenas descreve a área mas falha em apresentar a contribuição e as variáveis específicas da pesquisa.]
 
 (Nota: Se não houver erros semânticos, retorne apenas "Nenhum problema semântico encontrado.")

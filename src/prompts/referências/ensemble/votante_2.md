@@ -34,7 +34,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a referência fora de ordem ou indique 'Alerta de Correspondência com o Texto']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de ordem alfabética ou a necessidade de evitar referências não citadas (fantasmas)]
     * **Sugestão:** [Forneça a instrução exata para reordenar a entrada na lista ou realizar a verificação biunívoca]
     * **Tipo:** [Escreva "Normativa" para erro de ordem alfabética, ou "Semântica" para o alerta de correspondência]

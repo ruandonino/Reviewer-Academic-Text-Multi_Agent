@@ -34,7 +34,7 @@ Antes de gerar a sua resposta final, utilize a tag <scratchpad> para conduzir a 
 <output_formatting>
 Apresente sua avaliação utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira o trecho exato onde o erro ocorre, ou indique 'Omissão de Elemento']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique detalhadamente o erro identificado com base nos 5 princípios e o impacto na credibilidade do estudo]
     * **Sugestão:** [Indique exatamente como corrigir o problema ou qual elemento adicionar]
     * **Tipo:** [Escreva estritamente "Normativa" ou "Semântica"]

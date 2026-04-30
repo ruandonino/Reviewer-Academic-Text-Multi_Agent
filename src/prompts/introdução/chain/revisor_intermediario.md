@@ -36,7 +36,7 @@ Sua avaliação foca nestes critérios complementares:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final (substituindo a revisão anterior pela sua versão aprimorada) utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique 'Falta de Derivação Lógica/Lacuna']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro lógico entre literatura e hipótese, ou ausência de justificativa]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada para amarrar os conceitos]
     * **Tipo:** [Classifique o tipo de problema, ex: Semântica]

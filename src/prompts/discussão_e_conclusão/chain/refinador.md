@@ -45,7 +45,7 @@ Sua avaliação abrange a totalidade dos critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final, consolidando todas as críticas válidas da cadeia, utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira o trecho de falsa perfeição, tarefa técnica ou indique 'Omissão de Limitações']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado: viés oculto, falsa generalização, trabalho futuro de engenharia ou os erros anteriores da cadeia]
     * **Sugestão:** [Forneça a sugestão de reescrita definitiva, exigindo transparência de falhas ou apontando novas linhas de pesquisa]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Semântica"]

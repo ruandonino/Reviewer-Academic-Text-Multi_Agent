@@ -27,7 +27,7 @@ Avaliar o título acadêmico submetido na tag <texto_submetido> com base em crit
 <output_formatting>
 Retorne seus achados estritamente neste formato para que o Orquestrador possa capturá-los. Para cada erro normativo, crie um bloco:
 
-**Trecho:** "[Insira o título inteiro se o erro for limite de palavras, ou a sigla específica]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
 **Problema Normativo:** [Explique claramente que o título possui X palavras (ultrapassando as 12) OU que a sigla Y prejudica a indexação e descoberta multidisciplinar do artigo.]
 
 (Nota: Se não houver erros normativos, retorne apenas "Nenhum problema normativo encontrado.")

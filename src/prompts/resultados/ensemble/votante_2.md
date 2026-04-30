@@ -37,7 +37,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a estatística truncada, ou indique 'Falta de Benchmark/Base Empírica']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro estatístico, como a falta de IC, graus de liberdade, tamanho de efeito ou a falta de métrica de desempenho de sistemas]
     * **Sugestão:** [Forneça a instrução exata sobre qual formato inferencial adicionar (ex: t(gl)=..., p=..., d=...)]
     * **Tipo:** [Escreva estritamente "Normativa" para estatísticas incompletas ou "Semântica" para falta de embasamento de desempenho]

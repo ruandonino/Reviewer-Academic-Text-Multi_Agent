@@ -41,7 +41,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira o trecho exato ou indique 'Omissão Normativa/Ética' caso seja uma ausência estrutural]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de replicabilidade, falta de definição de variáveis ou omissão ética e seu impacto]
     * **Sugestão:** [Forneça a instrução exata de formatação, detalhamento técnico ou inclusão de declaração faltante]
     * **Tipo:** [Escreva estritamente "Normativa"]

@@ -45,7 +45,7 @@ Sua avaliação abrange a totalidade dos critérios da Metodologia:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final, consolidando todas as críticas válidas da cadeia, utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira a frase ou indique 'Omissão Metodológica/Ética']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado, omissão de análise, viés ou falha ética]
     * **Sugestão:** [Forneça a instrução de correção ou inserção exigida]
     * **Tipo:** [Classifique o tipo de problema estritamente como "Normativa" ou "Semântica"]

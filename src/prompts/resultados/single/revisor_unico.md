@@ -51,7 +51,7 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira o trecho exato onde o erro ocorre, ou indique 'Omissão de Elemento (Ex: Relato Estatístico Incompleto / Fluxo de Participantes)']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro com base nos critérios de avaliação (ex: presença de especulação teórica, falta de tamanho de efeito/valor-p, ausência de dados de perdas amostrais, repetição literal de tabela) e o impacto científico]
     * **Sugestão:** [Forneça a instrução exata sobre como reescrever o texto de forma neutra, como preencher o formato estatístico correto, ou onde alocar a interpretação precipitada]
     * **Tipo:** [Escreva estritamente "Normativa" se o erro for de formatação do relato estatístico (ausência de gl, p, IC), inclusão indevida de dados brutos ou falhas em regras de reporte formal (como o fluxo da amostra), OU escreva estritamente "Semântica" se o erro envolver interpretação ou especulação indevida nos resultados, viés ao esconder achados não-significativos ou texto agindo como mero leitor de tabelas]

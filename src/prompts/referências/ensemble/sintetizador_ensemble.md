@@ -40,7 +40,7 @@ A síntese final deve cobrir a totalidade dos critérios das Referências:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado encontrado pelo comitê, crie um novo bloco:
 
-**Trecho:** "[Insira a referência com defeito ou indique 'Alerta de Correspondência']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado (dados faltantes, ordem quebrada, falta de itálico) ou o risco das fontes não citadas]
     * **Sugestão:** [Forneça a instrução de preenchimento ou reestruturação visual consolidada]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" (estética/ordem) ou "Semântica" (completude/paridade)]

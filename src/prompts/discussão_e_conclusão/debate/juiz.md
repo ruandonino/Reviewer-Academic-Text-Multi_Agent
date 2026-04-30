@@ -43,7 +43,7 @@ O veredito final deve cobrir a totalidade dos critérios de Discussão e Conclus
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase falha ou indique 'Omissão de Análise Crítica/Limitações/Comparação']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado pelo juízo abordando interpretação rasa, ausência de limites ou falta de contexto]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada definitiva]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Semântica"]

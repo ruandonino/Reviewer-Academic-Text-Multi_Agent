@@ -45,7 +45,7 @@ O veredito final deve cobrir a totalidade dos critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado, crie um novo bloco:
 
-**Trecho:** "[Insira o trecho exato ou a indicação de omissão teórica/limitação]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado abordando falta de teoria, limitação omitida, repetição inútil ou propostas técnicas fracas]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada definitiva (como detalhar a contribuição, confessar o viés, etc.)]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Semântica"]

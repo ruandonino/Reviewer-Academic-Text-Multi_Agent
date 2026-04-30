@@ -39,7 +39,7 @@ Sua avaliação foca nestes critérios complementares:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final (substituindo a revisão anterior pela sua versão aprimorada) utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira a frase estatística incompleta, o relato metodológico pobre ou a indicação de possível 'Omissão de Resultados Nulos']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a falta de métricas (gl, tamanho de efeito, IC), a falta de benchmark ou a suspeita de ocultação de dados]
     * **Sugestão:** [Forneça a instrução do formato estatístico exato exigido ou a métrica comparativa que deve ser adicionada]
     * **Tipo:** [Escreva "Normativa" para falha no formato estatístico, ou "Semântica" para viés/cherry-picking e falha metodológica]

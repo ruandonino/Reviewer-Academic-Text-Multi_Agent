@@ -39,7 +39,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Falta de Detalhamento']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a falta de detalhes técnicos, variáveis confusas ou amostra incompleta]
     * **Sugestão:** [Forneça a instrução exata sobre quais detalhes técnicos ou definições adicionar]
     * **Tipo:** [Escreva "Normativa" para omissão de ferramentas/passos, ou "Semântica" para variáveis mal definidas]

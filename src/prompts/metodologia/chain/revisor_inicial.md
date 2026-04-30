@@ -36,7 +36,7 @@ Sua avaliação foca nestes critérios iniciais:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Omissão de Elemento Metodológico']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a falta de justificação, classificação ou desenho]
     * **Sugestão:** [Forneça a sugestão de reescrita para melhorar a fundamentação metodológica]
     * **Tipo:** [Escreva estritamente "Semântica"]

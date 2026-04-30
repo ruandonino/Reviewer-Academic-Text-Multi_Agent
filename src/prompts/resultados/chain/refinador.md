@@ -42,7 +42,7 @@ Sua avaliação abrange a totalidade dos critérios dos Resultados:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final, consolidando todas as críticas válidas da cadeia, utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira o trecho exato ou indique 'Repetição de Tabela']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado: leitura redundante de dados, falta de insight, erro estatístico, etc.]
     * **Sugestão:** [Forneça a sugestão de reescrita definitiva, exigindo síntese de tendências ou a métrica faltante]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

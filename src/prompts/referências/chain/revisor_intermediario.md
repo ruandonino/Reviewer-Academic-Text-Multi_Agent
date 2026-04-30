@@ -17,7 +17,7 @@ Você é o Revisor Intermediário da seção de REFERÊNCIAS (Chain Architecture
 
 Apresente sua resposta consolidada (mantendo e aprimorando os pontos do revisor inicial se válidos) utilizando estritamente a seguinte estrutura:
 
-**Trecho:** "[Insira a referência incompleta, inconsistente ou o erro herdado]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o dado faltante, a quebra de estilo ou o erro de ordem/convenção]
     * **Sugestão:** [Forneça a instrução exata para correção ou complementação]
     * **Tipo:** [Classifique como "Normativa" (estilo/ordem) ou "Semântica" (dados faltantes)]

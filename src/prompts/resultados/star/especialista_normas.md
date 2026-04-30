@@ -39,7 +39,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira o trecho exato estatístico, dados brutos, ou indique 'Omissão de Elemento/Fluxo']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique a falta de rigor estatístico (ex: ausência de tamanho de efeito), a omissão de fluxo ou a poluição com dados brutos]
     * **Sugestão:** [Forneça a instrução exata de qual métrica adicionar ou onde alocar os dados]
     * **Tipo:** [Escreva estritamente "Normativa"]

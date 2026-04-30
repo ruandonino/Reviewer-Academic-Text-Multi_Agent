@@ -35,7 +35,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Erro de Funil/Omissão']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a quebra de funil, objetivos obscuros ou falta de justificativa da hipótese]
     * **Sugestão:** [Forneça a instrução exata para corrigir a estrutura ou amarrar as hipóteses]
     * **Tipo:** [Escreva "Semântica" para lógica ou "Normativa" se a declaração de objetivo não for formal]

@@ -39,7 +39,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Problema de Foco/Fonte']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente a digressão teórica, literatura desatualizada ou o erro no uso de citações/fontes]
     * **Sugestão:** [Forneça a instrução de remoção do trecho, atualização de literatura ou formatação da citação]
     * **Tipo:** [Escreva "Normativa" para violação de citações/fontes ou "Semântica" para digressões e falta de atualização]

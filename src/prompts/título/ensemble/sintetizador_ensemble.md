@@ -38,7 +38,7 @@ A síntese final deve cobrir a totalidade dos critérios do Título Perfeito:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema consolidado encontrado pelo comitê, crie um novo bloco:
 
-**Trecho:** "[Insira a palavra, expressão ou o título inteiro que apresenta o problema]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado e seu impacto]
     * **Sugestão:** [Forneça a sugestão de reescrita otimizada e consolidada pelos votantes]
     * **Tipo:** [Classifique o tipo de problema consolidado, ex: Normativa ou Semântica]

@@ -42,7 +42,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, parágrafo ou indique 'Omissão Analítica/Ética']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de validação, falta de análise de dados, viés ou falha ética]
     * **Sugestão:** [Forneça a instrução exata para corrigir a lacuna analítica ou adicionar a declaração ética]
     * **Tipo:** [Escreva "Normativa" para omissão ética, ou "Semântica" para falhas em análise/validação/viés]

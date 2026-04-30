@@ -38,7 +38,7 @@ Sua avaliação foca nestes critérios:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a frase, o trecho suspeito de viés ou indique 'Omissão de Fluxo/Dados']"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro de falta de transparência da amostra ou possível ocultação de resultados nulos]
     * **Sugestão:** [Forneça a instrução exata para relatar dropouts ou listar todos os achados estatísticos]
     * **Tipo:** [Escreva estritamente "Semântica" para viés de publicação ou "Normativa" para omissão de relato procedimental]

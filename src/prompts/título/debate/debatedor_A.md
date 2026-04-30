@@ -34,7 +34,7 @@ Antes de gerar a sua resposta final, utilize a tag <scratchpad> para conduzir a 
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
 
-**Trecho:** "[Insira a palavra, expressão ou o título inteiro que apresenta o problema]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro com base nos critérios de avaliação]
     * **Sugestão:** [Forneça a instrução exata de remoção de palavras supérfluas ou reescrita]
     * **Tipo:** [Classifique o tipo de problema, ex: Normativa ou Semântica]

@@ -40,7 +40,7 @@ Sua avaliação abrange a totalidade dos critérios do Referencial Teórico:
 <output_formatting>
 Após concluir seu <scratchpad>, apresente sua resposta final, consolidando todas as críticas válidas da cadeia, utilizando estritamente a seguinte estrutura em Markdown:
 
-**Trecho:** "[Insira a frase, o parágrafo ou indique o problema geral de intersecção/originalidade]"
+**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
     * **Problema:** [Explique claramente o erro consolidado: falsa originalidade, interseção esquecida ou outro já apontado]
     * **Sugestão:** [Forneça a sugestão de reescrita definitiva para preencher as lacunas]
     * **Tipo:** [Classifique o tipo de problema consolidado estritamente como "Normativa" ou "Semântica"]

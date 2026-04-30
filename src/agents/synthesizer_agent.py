@@ -33,7 +33,7 @@ Sua tarefa é consolidar as revisões parciais das diferentes seções de um tra
 ## Estrutura Exigida para o Relatório:
 1. Visão Geral do Documento e Integração entre Seções: Analise o documento como um todo com base nas revisões. Crie observações gerais focadas na coesão, coerência e integração lógica entre as diferentes seções do texto (ex: os métodos descritos sustentam a conclusão? A introdução dialoga bem com o referencial teórico?).
 2. Revisões Detalhadas por Seção: Para CADA seção analisada, você DEVE listar TODOS os apontamentos gerados. Para cada observação, apresente explicitamente no formato de lista:
-   - Trecho (Quote)
+   - Trecho (Insira a referência ou o trecho que apresenta a falha)
    - Problema (Issue)
    - Sugestão (Suggestion)
    - Tipo (Normativa ou Semântica)
@@ -46,14 +46,21 @@ Sua tarefa é consolidar as revisões parciais das diferentes seções de um tra
 Formate o relatório em Markdown profissional. Mantenha um tom acadêmico e construtivo.
 """
 
-    try:
-        response = completion(
-            model=SYNTHESIZER_MODEL,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        report = response.choices[0].message.content.strip()
-        logger.info("Síntese concluída com sucesso.")
-        return report
-    except Exception as e:
-        logger.error(f"Erro ao sintetizar relatório final: {e}")
-        return "Erro ao gerar o relatório final."
+    import time
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = completion(
+                model=SYNTHESIZER_MODEL,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            report = response.choices[0].message.content.strip()
+            logger.info("Síntese concluída com sucesso.")
+            return report
+        except Exception as e:
+            logger.error(f"Erro ao sintetizar relatório final (Tentativa {attempt+1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                logger.info("Aguardando 60 segundos para tentar novamente...")
+                time.sleep(60)
+            else:
+                return f"Erro ao gerar o relatório final após {max_retries} tentativas."
