@@ -1,5 +1,5 @@
 import uuid
-from litellm import completion
+from src.utils.llm_client import safe_completion as completion
 from src.models.section import Section
 from src.models.router import RouterDecision
 from src.models.review import ReviewResult

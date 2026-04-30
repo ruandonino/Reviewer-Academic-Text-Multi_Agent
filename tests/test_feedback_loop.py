@@ -56,11 +56,11 @@ def mock_evaluate_review(section, review):
     if attempt_counter == 1:
         # Reprova na primeira tentativa
         logger.warning("[MOCK] Simulando nota BAIXA (50.0) -> Deve forçar o retorno ao Roteador.")
-        return EvaluationScore(score=50.0, justification="Muito ruim.", approved=False)
+        return EvaluationScore(score=50.0, approved=False)
     else:
         # Aprova na segunda tentativa
         logger.info("[MOCK] Simulando nota ALTA (95.0) -> Deve seguir para o Sumarizador.")
-        return EvaluationScore(score=95.0, justification="Excelente.", approved=True)
+        return EvaluationScore(score=95.0, approved=True)
 
 def mock_summarize_and_index(section, review, decision, score, cost_tokens=0, cost_usd=0.0):
     logger.info(f"[MOCK] Sumarizador invocado! Nota final salva: {score}")

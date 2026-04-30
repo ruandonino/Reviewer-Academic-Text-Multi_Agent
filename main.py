@@ -15,7 +15,7 @@ async def process_section_async(section, app_graph):
     """
     Processa uma seção individual de forma assíncrona usando o LangGraph.
     """
-    logger.info(f"==> Iniciando processamento paralelo para seção: {section.type} (Posição {section.position})")
+    logger.info(f"==> Iniciando processamento para seção: {section.type} (Posição {section.position})")
     
     initial_state = {
         "section": section,
@@ -79,9 +79,17 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     # Inicializa o Grafo
     app_graph = build_review_graph()
     
-    # Processamento Paralelo (RNF02)
-    logger.info("Iniciando processamento paralelo das seções.")
-    tasks = [process_section_async(sec, app_graph) for sec in secoes]
+    import src.orchestration.graph as og
+    og.first_pass_total = len(secoes)
+    og.first_pass_routers_done = 0
+    og.router_barrier_event.clear()
+    
+    # Processamento sem limite de concorrência simultâneo
+    logger.info("Iniciando processamento das seções (Sem limite de concorrência).")
+    
+    tasks = []
+    for sec in secoes:
+        tasks.append(process_section_async(sec, app_graph))
     
     revisoes_parciais = await asyncio.gather(*tasks)
     
@@ -95,9 +103,13 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     logger.info("=== RELATÓRIO FINAL ===")
     print(relatorio_final)
     
-    with open("relatorio_final.md", "w", encoding="utf-8") as f:
+    base_name = os.path.basename(pdf_path)
+    name_without_ext = os.path.splitext(base_name)[0]
+    report_filename = f"relatorio_final_{name_without_ext}.md"
+    
+    with open(report_filename, "w", encoding="utf-8") as f:
         f.write(relatorio_final)
-    logger.info("Relatório salvo em 'relatorio_final.md'")
+    logger.info(f"Relatório salvo em '{report_filename}'")
 
 if __name__ == "__main__":
     asyncio.run(main())

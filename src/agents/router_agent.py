@@ -1,6 +1,6 @@
 import json
 from typing import List, Dict, Any, Tuple
-from litellm import completion
+from src.utils.llm_client import safe_completion as completion
 from src.models.section import Section
 from src.models.router import RouterDecision, ModelAllocation
 from src.memory.vector_db import vector_db
@@ -27,6 +27,19 @@ def mount_router_prompt(section: Section, history: List[Dict[str, Any]]) -> str:
                                  f"- Resumo: {meta.get('text_summary')}\n")
         history_text = "\n".join(history_texts)
 
+    # Constrói a lista de modelos dinamicamente
+    models_text = ""
+    for model_id, desc in settings.available_models.items():
+        models_text += f"- {model_id}: {desc}\n"
+
+    # Constrói a lista de arquiteturas e agentes exigidos dinamicamente
+    archs_text = ""
+    valid_arch_names = list(settings.available_architectures.keys())
+    for arch_name, agents in settings.available_architectures.items():
+        archs_text += f"- {arch_name}: Requer os seguintes agentes -> {', '.join(agents)}\n"
+
+    arch_format = " | ".join(valid_arch_names)
+
     prompt = f"""
 Você é o Agente Roteador de um sistema multiagente de revisão acadêmica.
 Sua tarefa é analisar a seção atual e o histórico de execuções similares para decidir a melhor arquitetura e os melhores modelos (LLMs) para realizar a revisão.
@@ -39,28 +52,23 @@ Texto:
 ## Histórico de Revisões Semelhantes (RAG)
 {history_text}
 
-## Arquiteturas Disponíveis
-- Single: Um único agente revisor. (Baixo custo, para seções simples).
-- Star: Um agente revisor principal e agentes auxiliares para aspectos específicos.
-- Debate: Agentes debatem os apontamentos antes de consolidar.
-- Chain: Revisão sequencial onde cada agente refina o trabalho do anterior.
-- Ensemble: Múltiplas revisões independentes consolidadas por um votante.
+## Arquiteturas Disponíveis e Seus Agentes
+Abaixo estão as arquiteturas disponíveis e os NOMES EXATOS dos agentes que você DEVE alocar caso escolha essa arquitetura:
+{archs_text}
 
 ## Modelos Disponíveis
-- gemini/gemma-3-27b-it: Custo BAIXO. Modelo open-weight eficiente e rápido. Ideal para tarefas de baixa e média complexidade, como revisões normativas simples ou roteamento inicial, sendo a escolha prioritária quando o orçamento é restrito ou a seção é trivial.
-- gemini/gemini-2.5-flash-lite: Custo MÉDIO. Modelo balanceado, com excelente capacidade de raciocínio lógico e grande contexto. Ideal para a maioria das tarefas de revisão acadêmica, oferecendo o melhor custo-benefício geral.
-- claude-3-5-sonnet-20241022: Custo ALTO. Modelo premium com altíssima capacidade analítica, compreensão profunda de nuances semânticas e estruturais. Ideal para tarefas muito complexas, como consolidar debates de múltiplos agentes ou avaliar metodologias densas.
-- gpt-4o: Custo ALTO. Modelo de fronteira de alto desempenho, excelente para raciocínio lógico complexo e cumprimento estrito de regras (como normas da ABNT rigorosas). Use com moderação, apenas quando alto rigor for necessário.
+{models_text}
 
 Retorne EXATAMENTE um JSON válido com a seguinte estrutura:
 {{
-    "architecture": "Single" | "Star" | "Debate" | "Chain" | "Ensemble",
+    "architecture": "{arch_format}",
     "models": [
-        {{"agent_name": "revisor_principal", "model_id": "gemini/gemma-3-27b-it"}}
+        {{"agent_name": "<nome_exato_do_agente_da_arquitetura_escolhida>", "model_id": "<um_dos_modelos_disponiveis>"}}
     ],
     "reasoning": "Sua justificativa baseada no histórico e complexidade.",
     "system_prompt": "O system prompt que será passado para os agentes revisores focado nesta seção."
 }}
+ATENÇÃO: A propriedade 'models' do JSON deve conter EXATAMENTE os agentes exigidos pela arquitetura escolhida.
 """
     return prompt
 

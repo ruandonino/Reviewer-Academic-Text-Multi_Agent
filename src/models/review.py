@@ -19,5 +19,4 @@ class EvaluationScore(BaseModel):
     Resultado do Agente Avaliador (Etapa 5)
     """
     score: float = Field(description="Nota contínua de 0 a 100", ge=0.0, le=100.0)
-    justification: str = Field(description="Justificativa textual baseada em cobertura, especificidade, etc.")
     approved: bool = Field(description="Indicador se a nota é >= ao limiar theta.")

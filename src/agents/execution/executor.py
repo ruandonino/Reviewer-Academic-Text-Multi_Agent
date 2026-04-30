@@ -2,25 +2,29 @@ import os
 import json
 import uuid
 import datetime
+import operator
 from typing import List, Dict, Any, Optional
-from litellm import completion
+from typing_extensions import TypedDict, Annotated
+from src.utils.llm_client import safe_completion as completion
+from langgraph.graph import StateGraph, END, START
+
 from src.models.section import Section
-from src.models.router import RouterDecision
+from src.models.router import RouterDecision, ModelAllocation
 from src.models.review import ReviewResult, Observation
 from src.utils.logger import get_logger
 
 logger = get_logger()
+
+# --- Logging e Leitura de Prompts ---
 
 def _save_agent_log(execution_id: str, section_type: str, architecture: str, model_id: str, agent_name: str, content_json: Any):
     """Salva a resposta do agente agrupada por ID de execução e separada pelo nome do agente."""
     log_dir = os.path.join("logs", "agents_responses")
     os.makedirs(log_dir, exist_ok=True)
     
-    # Usa um nome de arquivo fixo por execução para garantir o agrupamento
     filename = f"exec_{section_type}_{execution_id}.json"
     filepath = os.path.join(log_dir, filename)
     
-    # Estrutura do log para este agente
     log_entry = {
         "timestamp": datetime.datetime.now().isoformat(),
         "model_id": model_id,
@@ -28,7 +32,6 @@ def _save_agent_log(execution_id: str, section_type: str, architecture: str, mod
     }
     
     try:
-        # Se o arquivo já existe, lê o conteúdo atual (dicionário) e adiciona a nova chave/agente
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as f:
                 logs = json.load(f)
@@ -40,7 +43,6 @@ def _save_agent_log(execution_id: str, section_type: str, architecture: str, mod
                 "agents": {}
             }
             
-        # Trata o caso de um mesmo agente responder mais de uma vez (como em iterações futuras)
         if agent_name in logs["agents"]:
             if not isinstance(logs["agents"][agent_name], list):
                 logs["agents"][agent_name] = [logs["agents"][agent_name]]
@@ -55,181 +57,357 @@ def _save_agent_log(execution_id: str, section_type: str, architecture: str, mod
     except Exception as e:
         logger.error(f"Falha ao salvar log do agente: {e}")
 
-def execute_architecture(decision: RouterDecision, section: Section) -> ReviewResult:
-    """
-    Orquestra a produção colaborativa baseada na topologia escolhida (Etapa 4).
-    """
-    logger.info(f"Executando topologia: {decision.architecture}")
+
+def load_agent_prompt(agent_name: str, router_instructions: str, section_type: str, architecture: str) -> str:
+    """Carrega o system prompt do agente a partir do arquivo markdown organizados por seção e arquitetura."""
+    base_dir = os.path.join("src", "prompts")
     
-    # Gera um ID de execução único para esta seção e esta tentativa
-    execution_id = str(uuid.uuid4())[:8]
+    # Normaliza nomes para pastas
+    safe_section = section_type.lower().replace(" ", "_")
+    safe_arch = architecture.lower()
     
-    if not decision.models:
-        return _execute_single(decision, section, execution_id)
+    # Caminho ideal: src/prompts/{section_type}/{architecture}/{agent_name}.md
+    ideal_dir = os.path.join(base_dir, safe_section, safe_arch)
+    os.makedirs(ideal_dir, exist_ok=True)
+    
+    filepath = os.path.join(ideal_dir, f"{agent_name}.md")
+    
+    if not os.path.exists(filepath):
+        logger.warning(f"Prompt não encontrado em '{filepath}'. Tentando default da arquitetura.")
+        filepath = os.path.join(ideal_dir, "default.md")
         
-    if decision.architecture == "Single":
-        return _execute_single(decision, section, execution_id)
-    elif decision.architecture == "Star":
-        return _execute_star(decision, section, execution_id)
-    elif decision.architecture == "Chain":
-        return _execute_chain(decision, section, execution_id)
-    elif decision.architecture == "Debate":
-        return _execute_debate(decision, section, execution_id)
-    elif decision.architecture == "Ensemble":
-        return _execute_ensemble(decision, section, execution_id)
+        if not os.path.exists(filepath):
+            logger.warning(f"Prompt default não encontrado em '{ideal_dir}'. Usando default global.")
+            filepath = os.path.join(base_dir, "default.md")
+            os.makedirs(base_dir, exist_ok=True)
+            
+            if not os.path.exists(filepath):
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write("Você é um agente revisor acadêmico.\n\nDiretrizes Específicas para esta Seção:\n{router_instructions}")
+                
+    with open(filepath, "r", encoding="utf-8") as f:
+        template = f.read()
+        
+    if "{router_instructions}" in template:
+        prompt = template.replace("{router_instructions}", router_instructions)
     else:
-        logger.warning(f"Topologia {decision.architecture} desconhecida. Usando Single fallback.")
-        return _execute_single(decision, section, execution_id)
+        prompt = f"{template}\n\nDiretrizes Específicas para esta Seção:\n{router_instructions}"
+        
+    return prompt
+
+
+import re
+import random
+import time
 
 def _call_llm_for_review(model_id: str, system_prompt: str, section: Section, execution_id: str, agent_name: str, architecture: str, additional_context: str = "") -> ReviewResult:
     """Função utilitária agnóstica de provedor usando LiteLLM"""
     prompt = f"""
-{system_prompt}
 
-{additional_context}
-
-## Seção para revisão
-Tipo: {section.type}
-Texto:
+<dynamic_context>
+Você receberá os dados do usuário nas seguintes tags:
+<texto_submetido>
+Tipo de seção: {section.type}
 {section.text}
-
-Retorne EXATAMENTE um JSON válido com a estrutura:
-{{
-    "general_comments": "Comentários gerais sobre a seção.",
-    "observations": [
-        {{
-            "quote": "trecho do texto",
-            "issue": "problema encontrado",
-            "suggestion": "sugestão",
-            "type": "Normativa" ou "Semântica"
-        }}
-    ]
-}}
+</texto_submetido>
+<contexto_adicional>
+{system_prompt}
+{additional_context}
+</contexto_adicional>
+</dynamic_context>
 """
     try:
+        # Jitter maior para evitar Rate Limits em chamadas paralelas
+        time.sleep(random.uniform(2.0, 5.0))
+        
         response = completion(
             model=model_id,
             messages=[{"role": "user", "content": prompt}]
         )
         content = response.choices[0].message.content.strip()
         
-        # Limpa formatação Markdown se o modelo retornar ```json ... ```
-        if content.startswith("```json"):
-            content = content[7:-3].strip()
-        elif content.startswith("```"):
-            content = content[3:-3].strip()
-            
-        review_dict = json.loads(content)
+        # Parse the new markdown format
+        scratchpad_match = re.search(r'<scratchpad>(.*?)</scratchpad>', content, re.DOTALL | re.IGNORECASE)
+        general_comments = scratchpad_match.group(1).strip() if scratchpad_match else "Sem comentários gerais."
         
-        # Salva o log agrupado por execução e separado por agente com o JSON já formatado
-        _save_agent_log(execution_id, section.type, architecture, model_id, agent_name, review_dict)
+        observations = []
+        blocks = re.split(r'\*\*Trecho:\*\*', content)
+        for block in blocks[1:]: # O primeiro bloco contém o scratchpad e texto anterior
+            try:
+                # Divide pelo marcador "**Problema:**"
+                if '* **Problema:**' in block:
+                    quote_part, rest = block.split('* **Problema:**', 1)
+                elif '**Problema:**' in block:
+                    quote_part, rest = block.split('**Problema:**', 1)
+                else:
+                    continue
+                    
+                quote = quote_part.strip().strip('"').strip()
+                
+                # Divide pelo marcador "**Sugestão:**"
+                if '* **Sugestão:**' in rest:
+                    issue_part, rest = rest.split('* **Sugestão:**', 1)
+                elif '**Sugestão:**' in rest:
+                    issue_part, rest = rest.split('**Sugestão:**', 1)
+                else:
+                    continue
+                    
+                issue = issue_part.strip()
+                
+                # Divide pelo marcador "**Tipo:**"
+                if '* **Tipo:**' in rest:
+                    suggestion_part, type_part = rest.split('* **Tipo:**', 1)
+                elif '**Tipo:**' in rest:
+                    suggestion_part, type_part = rest.split('**Tipo:**', 1)
+                else:
+                    continue
+                    
+                suggestion = suggestion_part.strip()
+                obs_type = type_part.strip().split('\n')[0].strip() # Pega a primeira linha do tipo
+                
+                observations.append({
+                    "quote": quote,
+                    "issue": issue,
+                    "suggestion": suggestion,
+                    "type": obs_type
+                })
+            except Exception as e:
+                logger.warning(f"Erro ao parsear bloco de observação para o agente {agent_name}: {e}")
+                
+        review_dict = {
+            "general_comments": general_comments,
+            "observations": observations
+        }
+        
+        # Salva o log agrupado por execução e separado por agente
+        _save_agent_log(execution_id, section.type, architecture, model_id, agent_name, {
+            "raw_response": content,
+            "parsed": review_dict
+        })
         
         return ReviewResult(**review_dict)
     except Exception as e:
         logger.error(f"Erro na execução do modelo {model_id} (Agente: {agent_name}): {e}")
-        return ReviewResult(general_comments=f"Erro na execução: {e}", observations=[])
+        return ReviewResult(general_comments=f"Erro na execução do agente {agent_name}: {e}", observations=[])
 
-def _execute_single(decision: RouterDecision, section: Section, execution_id: str) -> ReviewResult:
-    model_id = decision.models[0].model_id if decision.models else "gpt-4o"
-    agent_name = decision.models[0].agent_name if decision.models else "revisor_unico"
-    res = _call_llm_for_review(model_id, decision.system_prompt, section, execution_id, agent_name=agent_name, architecture=decision.architecture)
-    
-    res.general_comments = f"Resultados da Topologia Single:\n\n--- Comentários de {agent_name} ---\n{res.general_comments}"
-    return res
 
-def _execute_star(decision: RouterDecision, section: Section, execution_id: str) -> ReviewResult:
-    """
-    Topologia Star: Especialistas em áreas distintas cujos resultados são somados.
-    """
-    results = []
-    foci = ["Normas Acadêmicas", "Coesão e Lógica Semântica", "Rigor Metodológico"]
+# --- Estado do Subgrafo (LangGraph) ---
+
+def merge_dicts(a: dict, b: dict) -> dict:
+    if a is None: a = {}
+    if b is None: b = {}
+    c = a.copy()
+    c.update(b)
+    return c
+
+class ExecutionState(TypedDict):
+    section: Section
+    decision: RouterDecision
+    execution_id: str
+    agent_reviews: Annotated[Dict[str, ReviewResult], merge_dicts]
+    current_chain_review: Optional[ReviewResult]
+    final_review: Optional[ReviewResult]
+
+
+# --- Construtor Dinâmico do LangGraph ---
+
+def build_execution_graph(decision: RouterDecision) -> StateGraph:
+    workflow = StateGraph(ExecutionState)
     
-    for i, model_alloc in enumerate(decision.models[:3]):
-        focus_prompt = f"{decision.system_prompt}\nFOCO EXCLUSIVO: {foci[i]}."
-        res = _call_llm_for_review(model_alloc.model_id, focus_prompt, section, execution_id, agent_name=model_alloc.agent_name, architecture=decision.architecture)
-        results.append((model_alloc.agent_name, res))
-    
-    all_obs = []
-    comments = ["Resultados da Topologia Star:"]
-    for agent_name, r in results:
-        all_obs.extend(r.observations)
-        comments.append(f"--- Comentários de {agent_name} ---\n{r.general_comments}")
+    models = decision.models
+    if not models:
+        models = [ModelAllocation(agent_name="revisor_unico", model_id="gemini/gemini-2.5-flash-lite")]
+
+    # Fábrica de Nós (Cada nó é um agente carregando seu prompt dinamicamente)
+    def create_agent_node(model_alloc: ModelAllocation, role: str):
+        def node_func(state: ExecutionState):
+            logger.info(f"Executando nó do agente: {model_alloc.agent_name} (Papel: {role})")
+            prompt = load_agent_prompt(model_alloc.agent_name, state["decision"].system_prompt, state["section"].type, state["decision"].architecture)
+            
+            additional_context = ""
+            if role == "chain_refiner" and state.get("current_chain_review"):
+                prev_rev = state['current_chain_review']
+                obs_json = json.dumps([obs.model_dump() for obs in prev_rev.observations], ensure_ascii=False)
+                additional_context = f"A revisão do seu colega anterior foi:\nComentários: {prev_rev.general_comments}\nObservações: {obs_json}\nRefine e melhore esta revisão."
+            elif role in ["judge", "synthesizer", "consolidator"]:
+                contexts = []
+                for name, rev in state.get("agent_reviews", {}).items():
+                    obs_json = json.dumps([obs.model_dump() for obs in rev.observations], ensure_ascii=False)
+                    contexts.append(f"## Revisão do Agente {name}:\nComentários: {rev.general_comments}\nObservações: {obs_json}")
+                additional_context = "Revisões independentes para consolidar e julgar:\n" + "\n".join(contexts)
+
+            res = _call_llm_for_review(
+                model_id=model_alloc.model_id,
+                system_prompt=prompt,
+                section=state["section"],
+                execution_id=state["execution_id"],
+                agent_name=model_alloc.agent_name,
+                architecture=state["decision"].architecture,
+                additional_context=additional_context
+            )
+            
+            updates = {"agent_reviews": {model_alloc.agent_name: res}}
+            if role in ["chain_starter", "chain_refiner"]:
+                updates["current_chain_review"] = res
+            if role in ["single", "chain_final", "judge", "synthesizer", "consolidator"]:
+                updates["final_review"] = res
+            return updates
+        return node_func
+
+    # Nó para Formatação Final (Apenas organiza o output visivelmente)
+    def format_results(state: ExecutionState):
+        arch = state["decision"].architecture.capitalize()
+        comments = [f"Resultados da Topologia {arch} (LangGraph):"]
+        final_rev = state["final_review"]
         
-    return ReviewResult(general_comments="\n\n".join(comments), observations=all_obs)
+        if not final_rev:
+            final_rev = ReviewResult(general_comments="Erro de execução no Grafo", observations=[])
+            return {"final_review": final_rev}
 
-def _execute_chain(decision: RouterDecision, section: Section, execution_id: str) -> ReviewResult:
-    """
-    Topologia Chain: Um agente revisa e o próximo refina a revisão anterior.
-    """
-    current_review = None
-    comments = ["Resultados da Topologia Chain:"]
-    
-    for i, model_alloc in enumerate(decision.models):
-        context = ""
-        if current_review:
-            context = f"A revisão anterior foi:\n{current_review.model_dump_json()}\nMelhore e refine esta revisão."
-        
-        current_review = _call_llm_for_review(model_alloc.model_id, decision.system_prompt, section, execution_id, agent_name=model_alloc.agent_name, architecture=decision.architecture, additional_context=context)
-        comments.append(f"--- Comentários de {model_alloc.agent_name} ---\n{current_review.general_comments}")
-        
-    if current_review:
-        current_review.general_comments = "\n\n".join(comments)
-        
-    return current_review
+        if arch == "Single" or len(state["decision"].models) == 1:
+            agent_name = state["decision"].models[0].agent_name
+            final_rev.general_comments = f"Resultados da Topologia Single (LangGraph):\n\n--- Comentários de {agent_name} ---\n{final_rev.general_comments}"
+            
+        elif arch == "Chain":
+            for m in state["decision"].models:
+                rev = state["agent_reviews"].get(m.agent_name)
+                if rev:
+                     comments.append(f"--- Comentários de {m.agent_name} ---\n{rev.general_comments}")
+            final_rev.general_comments = "\n\n".join(comments)
+            
+        elif arch == "Star":
+            specialists = state["decision"].models[:-1]
+            consolidator = state["decision"].models[-1]
+            for m in specialists:
+                rev = state["agent_reviews"].get(m.agent_name)
+                if rev:
+                    comments.append(f"--- Comentários de {m.agent_name} ---\n{rev.general_comments}")
+            comments.append(f"--- Comentários de {consolidator.agent_name} (Consolidador) ---\n{final_rev.general_comments}")
+            final_rev.general_comments = "\n\n".join(comments)
 
-def _execute_debate(decision: RouterDecision, section: Section, execution_id: str) -> ReviewResult:
-    """
-    Topologia Debate: Dois agentes revisam e um terceiro julga/consolida.
-    """
-    if len(decision.models) < 3:
-        return _execute_star(decision, section, execution_id) # Fallback se faltarem modelos
+        elif arch == "Debate":
+            debaters = state["decision"].models[:-1]
+            judge = state["decision"].models[-1]
+            for m in debaters:
+                rev = state["agent_reviews"].get(m.agent_name)
+                if rev:
+                    comments.append(f"--- Comentários de {m.agent_name} ---\n{rev.general_comments}")
+            comments.append(f"--- Comentários de {judge.agent_name} (Juiz) ---\n{final_rev.general_comments}")
+            final_rev.general_comments = "\n\n".join(comments)
+            
+        elif arch == "Ensemble":
+            voters = state["decision"].models[:-1]
+            synth_agent = state["decision"].models[-1].agent_name
+            for m in voters:
+                rev = state["agent_reviews"].get(m.agent_name)
+                if rev:
+                    comments.append(f"--- Comentários de {m.agent_name} ---\n{rev.general_comments}")
+            comments.append(f"--- Comentários de {synth_agent} (Síntese) ---\n{final_rev.general_comments}")
+            final_rev.general_comments = "\n\n".join(comments)
+            
+        return {"final_review": final_rev}
+
+
+    # --- Conectando os Nós e Arestas dinamicamente ---
+    arch = decision.architecture.capitalize()
+    
+    if arch == "Single" or len(models) == 1:
+        workflow.add_node("agent_0", create_agent_node(models[0], "single"))
+        workflow.add_node("format", format_results)
+        workflow.add_edge(START, "agent_0")
+        workflow.add_edge("agent_0", "format")
+        workflow.add_edge("format", END)
         
-    rev1 = _call_llm_for_review(decision.models[0].model_id, decision.system_prompt, section, execution_id, agent_name=decision.models[0].agent_name, architecture=decision.architecture)
-    rev2 = _call_llm_for_review(decision.models[1].model_id, decision.system_prompt, section, execution_id, agent_name=decision.models[1].agent_name, architecture=decision.architecture)
-    
-    consolidator_model = decision.models[2].model_id
-    consolidator_agent_name = decision.models[2].agent_name
-    prompt = f"""
-Atue como um Juiz Revisor. Abaixo estão duas revisões para a mesma seção.
-Consolide-as, removendo duplicatas e mantendo apenas os apontamentos mais pertinentes e corretos.
-
-## Revisão 1:
-{rev1.model_dump_json()}
-
-## Revisão 2:
-{rev2.model_dump_json()}
-"""
-    final_rev = _call_llm_for_review(consolidator_model, prompt, section, execution_id, agent_name=consolidator_agent_name, architecture=decision.architecture)
-    
-    comments = [
-        "Resultados da Topologia Debate:",
-        f"--- Comentários de {decision.models[0].agent_name} ---\n{rev1.general_comments}",
-        f"--- Comentários de {decision.models[1].agent_name} ---\n{rev2.general_comments}",
-        f"--- Comentários de {consolidator_agent_name} (Juiz) ---\n{final_rev.general_comments}"
-    ]
-    final_rev.general_comments = "\n\n".join(comments)
-    return final_rev
-
-def _execute_ensemble(decision: RouterDecision, section: Section, execution_id: str) -> ReviewResult:
-    """
-    Topologia Ensemble: Múltiplas revisões independentes e extração do consenso.
-    """
-    results = []
-    comments = ["Resultados da Topologia Ensemble:"]
-    
-    for model_alloc in decision.models:
-        res = _call_llm_for_review(model_alloc.model_id, decision.system_prompt, section, execution_id, agent_name=model_alloc.agent_name, architecture=decision.architecture)
-        results.append(res)
-        comments.append(f"--- Comentários de {model_alloc.agent_name} ---\n{res.general_comments}")
+    elif arch == "Chain":
+        prev = START
+        for i, m in enumerate(models):
+            node_name = f"agent_{i}"
+            role = "chain_final" if i == len(models) - 1 else ("chain_starter" if i == 0 else "chain_refiner")
+            workflow.add_node(node_name, create_agent_node(m, role))
+            workflow.add_edge(prev, node_name)
+            prev = node_name
         
-    # Agente de síntese para o ensemble
-    synthesis_prompt = "Sintetize as múltiplas revisões abaixo em uma única revisão final, mantendo a diversidade de problemas encontrados."
-    all_contexts = "\n".join([r.model_dump_json() for r in results])
+        workflow.add_node("format", format_results)
+        workflow.add_edge(prev, "format")
+        workflow.add_edge("format", END)
+
+    elif arch == "Star":
+        consolidator_model = models[-1]
+        specialists = models[:-1]
+        
+        workflow.add_node("consolidator", create_agent_node(consolidator_model, "consolidator"))
+        workflow.add_node("format", format_results)
+        
+        for i, m in enumerate(specialists):
+            node_name = f"agent_{i}"
+            workflow.add_node(node_name, create_agent_node(m, "reviewer"))
+            workflow.add_edge(START, node_name)
+            workflow.add_edge(node_name, "consolidator")
+            
+        workflow.add_edge("consolidator", "format")
+        workflow.add_edge("format", END)
+
+    elif arch == "Debate":
+        judge_model = models[-1]
+        debaters = models[:-1]
+        
+        workflow.add_node("judge", create_agent_node(judge_model, "judge"))
+        workflow.add_node("format", format_results)
+        
+        for i, m in enumerate(debaters):
+            node_name = f"agent_{i}"
+            workflow.add_node(node_name, create_agent_node(m, "reviewer"))
+            workflow.add_edge(START, node_name)
+            workflow.add_edge(node_name, "judge")
+            
+        workflow.add_edge("judge", "format")
+        workflow.add_edge("format", END)
+
+    elif arch == "Ensemble":
+        synth_model = models[0] # Usa o modelo do primeiro agent para sintetizar
+        synth_alloc = ModelAllocation(agent_name="sintetizador_ensemble", model_id=synth_model.model_id)
+        
+        workflow.add_node("synthesizer", create_agent_node(synth_alloc, "synthesizer"))
+        workflow.add_node("format", format_results)
+        
+        for i, m in enumerate(models):
+            node_name = f"agent_{i}"
+            workflow.add_node(node_name, create_agent_node(m, "reviewer"))
+            workflow.add_edge(START, node_name)
+            workflow.add_edge(node_name, "synthesizer")
+            
+        workflow.add_edge("synthesizer", "format")
+        workflow.add_edge("format", END)
+
+    return workflow.compile()
+
+
+def execute_architecture(decision: RouterDecision, section: Section) -> ReviewResult:
+    """
+    Orquestra a produção colaborativa baseada na topologia escolhida construindo um Grafo (LangGraph).
+    """
+    logger.info(f"Construindo Sub-Grafo (LangGraph) para a topologia: {decision.architecture}")
     
-    synthesizer_model = decision.models[0].model_id
-    synthesizer_agent_name = "sintetizador_ensemble"
-    final_rev = _call_llm_for_review(synthesizer_model, synthesis_prompt, section, execution_id, agent_name=synthesizer_agent_name, architecture=decision.architecture, additional_context=f"Revisões para consolidar:\n{all_contexts}")
+    execution_id = str(uuid.uuid4())[:8]
     
-    comments.append(f"--- Comentários de {synthesizer_agent_name} (Síntese) ---\n{final_rev.general_comments}")
-    final_rev.general_comments = "\n\n".join(comments)
-    return final_rev
+    # 1. Compila o Grafo sob demanda para esta arquitetura
+    workflow = build_execution_graph(decision)
+    
+    # 2. Inicializa o Estado do Sub-Grafo
+    initial_state = {
+        "section": section,
+        "decision": decision,
+        "execution_id": execution_id,
+        "agent_reviews": {},
+        "current_chain_review": None,
+        "final_review": None
+    }
+    
+    # 3. Invoca o LangGraph
+    final_state = workflow.invoke(initial_state)
+    
+    if not final_state.get("final_review"):
+        logger.error(f"Erro Crítico: Nenhuma revisão gerada pelo Sub-Grafo da arquitetura {decision.architecture}")
+        return ReviewResult(general_comments="Erro Crítico na execução do LangGraph interno.", observations=[])
+        
+    return final_state["final_review"]

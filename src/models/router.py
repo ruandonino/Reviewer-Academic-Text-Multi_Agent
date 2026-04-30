@@ -10,8 +10,7 @@ class RouterDecision(BaseModel):
     Resposta estruturada do Roteador (Etapa 3)
     """
     architecture: str = Field(
-        description="Topologia selecionada (ex: 'Star', 'Debate', 'Chain', 'Ensemble', 'Single')",
-        enum=["Single", "Star", "Debate", "Chain", "Ensemble"]
+        description="Topologia selecionada (ex: 'star', 'debate', 'chain', 'ensemble', 'single')"
     )
     models: List[ModelAllocation] = Field(description="Alocação de modelos LLM (mu_i) para cada agente.")
     reasoning: str = Field(description="Justificativa da escolha considerando contexto histórico e custo.")

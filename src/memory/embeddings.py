@@ -1,4 +1,4 @@
-from litellm import embedding
+from src.utils.llm_client import safe_embedding as embedding
 from src.config import settings
 from src.utils.logger import get_logger
 

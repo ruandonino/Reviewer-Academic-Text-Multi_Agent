@@ -53,7 +53,7 @@ class TestLangGraphOrchestration(unittest.TestCase):
         mock_route.return_value = (self.mock_decision, [])
         mock_exec.return_value = self.mock_review
         # Retorna aprovação na primeira chamada
-        mock_eval.return_value = EvaluationScore(score=90.0, justification="Bom", approved=True)
+        mock_eval.return_value = EvaluationScore(score=90.0, approved=True)
         
         # Executa o grafo
         final_state = self.app_graph.invoke(self.initial_state)
@@ -83,8 +83,8 @@ class TestLangGraphOrchestration(unittest.TestCase):
         
         # Primeira chamada reprova, segunda aprova
         mock_eval.side_effect = [
-            EvaluationScore(score=50.0, justification="Ruim", approved=False),
-            EvaluationScore(score=85.0, justification="Bom", approved=True)
+            EvaluationScore(score=50.0, approved=False),
+            EvaluationScore(score=85.0, approved=True)
         ]
         
         # Executa o grafo
@@ -119,9 +119,9 @@ class TestLangGraphOrchestration(unittest.TestCase):
         # Tentativa 2: nota 75 (Melhor tentativa!)
         # Tentativa 3: nota 50
         mock_eval.side_effect = [
-            EvaluationScore(score=60.0, justification="Ruim", approved=False),
-            EvaluationScore(score=75.0, justification="Quase", approved=False),
-            EvaluationScore(score=50.0, justification="Péssimo", approved=False)
+            EvaluationScore(score=60.0, approved=False),
+            EvaluationScore(score=75.0, approved=False),
+            EvaluationScore(score=50.0, approved=False)
         ]
         
         # Executa o grafo
@@ -144,3 +144,4 @@ class TestLangGraphOrchestration(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+unittest.main(verbosity=2)

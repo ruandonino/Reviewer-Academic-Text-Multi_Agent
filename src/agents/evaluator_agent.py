@@ -1,5 +1,6 @@
 import json
-from litellm import completion
+import re
+from src.utils.llm_client import safe_completion as completion
 from src.models.section import Section
 from src.models.review import ReviewResult, EvaluationScore
 from src.config import settings
@@ -34,12 +35,7 @@ Tipo: {section.type}
 3. Ausência de Fabricação (Alucinação): Os erros apontados realmente existem no texto original?
 4. Clareza Expositiva: A revisão é fácil de entender para o autor?
 
-Retorne EXATAMENTE um JSON válido com a estrutura:
-{{
-    "score": 85.5,
-    "justification": "Explicação detalhada dos pontos fortes e fracos, baseada nos critérios.",
-    "approved": true
-}}
+Retorne APENAS um número de 0 a 100 representando a nota da revisão, sem nenhum texto adicional.
 """
 
     try:
@@ -50,18 +46,19 @@ Retorne EXATAMENTE um JSON válido com a estrutura:
         
         content = response.choices[0].message.content.strip()
         
-        # Limpa formatação Markdown se o modelo retornar ```json ... ```
-        if content.startswith("```json"):
-            content = content[7:-3].strip()
-        elif content.startswith("```"):
-            content = content[3:-3].strip()
+        # Extrai apenas o número da resposta para evitar erros se o modelo retornar texto junto
+        match = re.search(r'\d+(\.\d+)?', content)
+        if match:
+            score_val = float(match.group(0))
+        else:
+            score_val = 0.0
             
-        eval_dict = json.loads(content)
+        is_approved = score_val >= settings.quality_threshold
         
-        # Override aprovado based on the internal setting to be safe
-        eval_dict['approved'] = eval_dict['score'] >= settings.quality_threshold
-        
-        score = EvaluationScore(**eval_dict)
+        score = EvaluationScore(
+            score=score_val,
+            approved=is_approved
+        )
         logger.info(f"Avaliação concluída. Nota: {score.score}. Aprovado: {score.approved}")
         return score
         
@@ -69,6 +66,5 @@ Retorne EXATAMENTE um JSON válido com a estrutura:
         logger.error(f"Erro no Agente Avaliador: {e}")
         return EvaluationScore(
             score=0.0,
-            justification=f"Falha na avaliação: {e}",
             approved=False
         )

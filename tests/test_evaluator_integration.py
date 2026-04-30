@@ -148,7 +148,6 @@ def test_evaluator_integration():
         
         logger.info(f"Nota Atribuída: {score.score}/100")
         logger.info(f"Aprovado: {score.approved}")
-        logger.info(f"Justificativa: {score.justification}")
         
         # Opcional: Adicionar um pequeno sleep para não estourar rate limits rapidamente
         time.sleep(2)

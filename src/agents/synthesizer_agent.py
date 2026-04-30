@@ -1,6 +1,6 @@
 import json
 from typing import List
-from litellm import completion
+from src.utils.llm_client import safe_completion as completion
 from src.models.review import ReviewResult
 from src.utils.logger import get_logger
 

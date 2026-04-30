@@ -6,15 +6,39 @@ from src.agents.evaluator_agent import evaluate_review
 from src.agents.summarizer_agent import summarize_and_index
 from src.config import settings
 from src.utils.logger import get_logger
+import time
+import threading
 
 logger = get_logger()
+
+# --- Sincronização do Roteador ---
+first_pass_total = 0
+first_pass_routers_done = 0
+router_lock = threading.Lock()
+router_barrier_event = threading.Event()
 
 # --- Nós do Grafo ---
 
 def router_node(state: ReviewState) -> dict:
     """Nó do Agente Roteador"""
+    global first_pass_routers_done
+    
     section = state["section"]
     decision, history = route_section(section)
+    
+    # Barreira de Sincronização pós-roteador para evitar Rate Limit na 1ª passagem
+    if state.get("attempts", 0) == 0 and first_pass_total > 0:
+        with router_lock:
+            first_pass_routers_done += 1
+            if first_pass_routers_done == first_pass_total:
+                from src.agents.router_agent import ROUTER_MODEL
+                if "gemma" in ROUTER_MODEL.lower() or "gemini" in ROUTER_MODEL.lower():
+                    logger.info("Todos os roteadores da 1ª passagem finalizaram. Aguardando 60s para evitar Rate Limit do modelo Roteador...")
+                    time.sleep(60)
+                router_barrier_event.set()
+        
+        # Faz as threads (seções) esperarem até que a última destrave o evento
+        router_barrier_event.wait()
     
     return {
         "current_decision": decision,
@@ -91,7 +115,8 @@ def evaluation_router(state: ReviewState) -> str:
         logger.warning(f"Limite de tentativas ({settings.max_attempts}) alcançado. Indo para sumarização com a melhor tentativa.")
         return "summarize"
         
-    logger.info("Revisão reprovada. Retornando ao Roteador para nova tentativa.")
+    logger.info("Revisão reprovada. Retornando ao Roteador para nova tentativa. Aguardando 30s para evitar rate limits...")
+    time.sleep(30)
     return "retry"
 
 # --- Construção do Grafo ---
