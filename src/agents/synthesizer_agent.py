@@ -33,7 +33,7 @@ Sua tarefa é consolidar as revisões parciais das diferentes seções de um tra
 
 ## Estrutura Exigida para o Relatório:
 1. Visão Geral do Documento e Integração entre Seções: Analise o documento como um todo com base nas revisões. Crie observações gerais focadas na coesão, coerência e integração lógica entre as diferentes seções do texto (ex: os métodos descritos sustentam a conclusão? A introdução dialoga bem com o referencial teórico?).
-2. Revisões Detalhadas por Seção seguindo a ordem canônica das seções do documento: Para CADA seção analisada, você DEVE listar TODOS os apontamentos gerados que sejam do tipo "semântica" ou "normativa". Para cada observação, apresente explicitamente no formato de lista:
+2. Revisões Detalhadas por Seção seguindo a ordem canônica das seções do documento (Título, Resumo, Introdução, etc.): Para CADA seção analisada, você DEVE listar TODOS os apontamentos gerados que sejam do tipo "semântica" ou "normativa". Para cada observação, apresente explicitamente no formato de lista:
    - Trecho (Insira a referência ou o trecho que apresenta a falha)
    - Problema (Issue)
    - Sugestão (Suggestion)

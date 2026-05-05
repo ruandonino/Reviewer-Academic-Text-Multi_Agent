@@ -11,6 +11,8 @@ Analisar a natureza informativa, o foco na contribuição e a precisão do títu
 2. Cobrança de Contribuição: Se o título apenas descreve um tema genérico, aponte que ele falha em não especificar a vantagem, o método inovador ou o resultado alcançado ("O que há de novo neste trabalho?").
 3. Identificação de Relações: O título é uma declaração inequívoca? As variáveis principais e o contexto estão visíveis e autocontidos sem precisar do resumo?
 4. NÃO aponte erros de ortografia, digitação ou gramática. O foco é apenas no conteúdo técnico e rigor científico.
+
+* NÃO REPITA OBSERVAÇÕES. Se um problema já foi apontado para o título (exemplo: 'título longo' ou 'título genérico'), consolide tudo em um único apontamento. É estritamente proibido gerar múltiplos blocos de observação para o mesmo problema semântico ou normativo no título.
 </heuristics>
 
 <thinking_process>

@@ -24,6 +24,8 @@ Tipo de seção: {section.type}
 2. Integração do W3: Como o W3 gera títulos reescritos inteiros, utilize as opções criadas por ele dentro do campo "Sugestão" dos problemas levantados, ou como uma sugestão geral no final do bloco do problema mais grave.
 3. Precisão da Classificação: Atribua o "Tipo: Normativa" exclusivamente aos achados do W1 (limite de palavras, siglas). Atribua "Tipo: Semântica" exclusivamente aos achados do W2 (termos genéricos, falta de contribuição teórica, variáveis ausentes).
 4. NÃO aponte erros de ortografia, digitação ou gramática. O foco é apenas no conteúdo técnico e rigor científico.
+
+* NÃO REPITA OBSERVAÇÕES. Se um problema já foi apontado para o título (exemplo: 'título longo' ou 'título genérico'), consolide tudo em um único apontamento. É estritamente proibido gerar múltiplos blocos de observação para o mesmo problema semântico ou normativo no título.
 </heuristics>
 
 <thinking_process>

@@ -21,6 +21,8 @@ Você receberá o título original na tag <texto_submetido> e os laudos dos audi
 2. Expansão de Siglas: Se W1 apontou uma sigla, expanda-a com termos claros reconhecidos na literatura, a menos que isso fira o limite de 12 palavras (neste caso, busque um sinônimo englobante).
 3. Frentes Diferentes: Forneça opções com abordagens ligeiramente distintas para dar escolha ao autor (Opção 1: Focada na Contribuição/Resultado; Opção 2: Focada na Relação de Variáveis/Método; Opção 3: Direta, curta e de Alto Impacto).
 4. NÃO aponte erros de ortografia, digitação ou gramática. O foco é apenas no conteúdo técnico e rigor científico.
+
+* NÃO REPITA OBSERVAÇÕES. Se um problema já foi apontado para o título (exemplo: 'título longo' ou 'título genérico'), consolide tudo em um único apontamento. É estritamente proibido gerar múltiplos blocos de observação para o mesmo problema semântico ou normativo no título.
 </heuristics>
 
 <thinking_process>

@@ -13,6 +13,8 @@ Avaliar o título acadêmico submetido na tag <texto_submetido> com base em crit
 2. Bloqueio de Siglas: Identifique qualquer sequência de letras maiúsculas que represente uma sigla ou acrônimo (ex: IA, MAS, LLM, ENEM). Títulos devem ser legíveis por pesquisadores fora do seu nicho estrito.
 3. Cegueira de Conteúdo: Não avalie se o título explica bem a pesquisa ou se o tema é interessante. Deixe essa análise para o Worker 2.
 4. NÃO aponte erros de ortografia, digitação ou gramática. O foco é apenas no conteúdo técnico e rigor científico.
+
+* NÃO REPITA OBSERVAÇÕES. Se um problema já foi apontado para o título (exemplo: 'título longo' ou 'título genérico'), consolide tudo em um único apontamento. É estritamente proibido gerar múltiplos blocos de observação para o mesmo problema semântico ou normativo no título.
 </heuristics>
 
 <thinking_process>
