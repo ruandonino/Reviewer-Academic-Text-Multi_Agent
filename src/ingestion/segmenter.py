@@ -48,7 +48,7 @@ def mapear_para_secao_canonica(header: str, threshold: float = 0.8) -> Optional[
             return section_type
 
     # 3. Heurísticas adicionais
-    if "referência" in header_clean or "bibliografia" in header_clean:
+    if "referência" in header_clean or "bibliografia" in header_clean or "trabalhos relacionados" in header_clean:
         return "referências"
     
     return None

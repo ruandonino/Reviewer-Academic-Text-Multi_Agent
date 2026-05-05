@@ -24,7 +24,7 @@ def router_node(state: ReviewState) -> dict:
     global first_pass_routers_done
     
     section = state["section"]
-    decision, history = route_section(section)
+    decision, history, tokens, cost = route_section(section)
     
     # Barreira de Sincronização pós-roteador para evitar Rate Limit na 1ª passagem
     if state.get("attempts", 0) == 0 and first_pass_total > 0:
@@ -43,7 +43,9 @@ def router_node(state: ReviewState) -> dict:
     return {
         "current_decision": decision,
         "historical_context": history,
-        "attempts": state.get("attempts", 0) + 1
+        "attempts": state.get("attempts", 0) + 1,
+        "total_tokens": tokens,
+        "total_cost": cost
     }
 
 def execution_node(state: ReviewState) -> dict:
@@ -54,18 +56,34 @@ def execution_node(state: ReviewState) -> dict:
     if not decision:
         raise ValueError("Decisão do roteador ausente.")
         
-    review = execute_architecture(decision, section)
-    return {"current_review": review}
+    review, tokens, cost = execute_architecture(decision, section)
+    return {
+        "current_review": review,
+        "total_tokens": tokens,
+        "total_cost": cost
+    }
 
 def evaluator_node(state: ReviewState) -> dict:
     """Nó do Agente Avaliador"""
     section = state["section"]
     review = state["current_review"]
+    decision = state["current_decision"]
     
     if not review:
         raise ValueError("Revisão ausente.")
         
-    score = evaluate_review(section, review)
+    score, tokens, cost = evaluate_review(section, review)
+    
+    # --- Indexação de TODAS as tentativas ---
+    # Indexamos a tentativa atual no banco vetorial para o histórico do Roteador
+    summarize_and_index(
+        section=section,
+        review=review,
+        decision=decision,
+        score=score.score,
+        cost_tokens=tokens,
+        cost_usd=cost
+    )
     
     # Atualiza o melhor score se necessário
     best_score = state.get("best_score", -1.0)
@@ -75,32 +93,20 @@ def evaluator_node(state: ReviewState) -> dict:
     if score.score > best_score:
         best_score = score.score
         best_review = review
-        best_decision = state["current_decision"]
+        best_decision = decision
         
     return {
         "current_evaluation": score,
         "is_approved": score.approved,
         "best_score": best_score,
         "best_review": best_review,
-        "best_decision": best_decision
+        "best_decision": best_decision,
+        "total_tokens": tokens,
+        "total_cost": cost
     }
 
 def summarizer_node(state: ReviewState) -> dict:
     """Nó do Agente Sumarizador (Fim do processo de sucesso)"""
-    section = state["section"]
-    
-    # Usa a melhor revisão se não foi aprovada na última tentativa
-    review = state["current_review"] if state["is_approved"] else state["best_review"]
-    decision = state["current_decision"] if state["is_approved"] else state["best_decision"]
-    score_val = state["current_evaluation"].score if state["is_approved"] else state["best_score"]
-    
-    if review and decision:
-        summarize_and_index(
-            section=section,
-            review=review,
-            decision=decision,
-            score=score_val
-        )
     return {}
 
 # --- Arestas Condicionais ---

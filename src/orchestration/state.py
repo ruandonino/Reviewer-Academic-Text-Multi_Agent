@@ -29,3 +29,7 @@ class ReviewState(TypedDict):
     best_score: float
     best_review: Optional[ReviewResult]
     best_decision: Optional[RouterDecision]
+    
+    # Acumuladores de custo
+    total_tokens: Annotated[int, operator.add]
+    total_cost: Annotated[float, operator.add]

@@ -41,6 +41,7 @@ class VectorDB:
                     "id": record.id,
                     "section_type": record.section_type,
                     "architecture_used": record.architecture_used,
+                    "models_used": ",".join(record.models_used),
                     "evaluation_score": record.evaluation_score,
                     "cost_usd": record.cost_usd,
                     # Converter complex objects para string/json se necessário para o ChromaDB

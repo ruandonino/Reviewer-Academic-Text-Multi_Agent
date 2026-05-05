@@ -12,3 +12,4 @@ class Section(BaseModel):
     # Optional fields for metadata
     page_start: Optional[int] = None
     page_end: Optional[int] = None
+    document_id: Optional[str] = None

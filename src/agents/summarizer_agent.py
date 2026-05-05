@@ -29,7 +29,7 @@ Resuma o texto abaixo em no máximo 3 parágrafos, focando nos conceitos princip
 Isso será usado para buscas semânticas futuras.
 
 Texto Original:
-{section.text[:3000]}...
+{section.text}...
 """
 
     try:
@@ -38,9 +38,23 @@ Texto Original:
             messages=[{"role": "user", "content": prompt}]
         )
         text_summary = response.choices[0].message.content.strip()
+
+        tokens = response.usage.total_tokens if hasattr(response, 'usage') and response.usage else 0
+        from litellm import completion_cost
+        try:
+            cost = completion_cost(completion_response=response)
+        except Exception:
+            logger.warning(f"Não foi possível calcular o custo do Sumarizador para o modelo {SUMMARIZER_MODEL}")
+            cost = 0.0
+
+        cost_tokens += tokens
+        cost_usd += cost
+
     except Exception as e:
         logger.error(f"Erro ao gerar resumo textual: {e}")
         text_summary = "Resumo indisponível devido a erro."
+        tokens = 0
+        cost = 0.0
 
     record = SummaryRecord(
         id=str(uuid.uuid4()),
@@ -54,8 +68,8 @@ Texto Original:
         cost_tokens=cost_tokens,
         cost_usd=cost_usd
     )
-    
+
     vector_db.index_record(record)
     logger.info(f"Sumarização e indexação concluídas (ID: {record.id})")
-    
-    return record
+
+    return record, tokens, cost

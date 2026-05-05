@@ -3,7 +3,7 @@ import json
 import uuid
 import datetime
 import operator
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from typing_extensions import TypedDict, Annotated
 from src.utils.llm_client import safe_completion as completion
 from langgraph.graph import StateGraph, END, START
@@ -17,12 +17,13 @@ logger = get_logger()
 
 # --- Logging e Leitura de Prompts ---
 
-def _save_agent_log(execution_id: str, section_type: str, architecture: str, model_id: str, agent_name: str, content_json: Any):
+def _save_agent_log(document_id: str, execution_id: str, section_type: str, architecture: str, model_id: str, agent_name: str, content_json: Any):
     """Salva a resposta do agente agrupada por ID de execução e separada pelo nome do agente."""
     log_dir = os.path.join("logs", "agents_responses")
     os.makedirs(log_dir, exist_ok=True)
     
-    filename = f"exec_{section_type}_{execution_id}.json"
+    doc_prefix = f"{document_id}_" if document_id else ""
+    filename = f"exec_{doc_prefix}{section_type}_{execution_id}.json"
     filepath = os.path.join(log_dir, filename)
     
     log_entry = {
@@ -100,7 +101,7 @@ import re
 import random
 import time
 
-def _call_llm_for_review(model_id: str, system_prompt: str, section: Section, execution_id: str, agent_name: str, architecture: str, additional_context: str = "") -> ReviewResult:
+def _call_llm_for_review(model_id: str, system_prompt: str, section: Section, execution_id: str, agent_name: str, architecture: str, additional_context: str = "") -> Tuple[ReviewResult, int, float]:
     """Função utilitária agnóstica de provedor usando LiteLLM"""
     prompt = f"""
 
@@ -126,6 +127,14 @@ Tipo de seção: {section.type}
         )
         content = response.choices[0].message.content.strip()
         
+        tokens = response.usage.total_tokens if hasattr(response, 'usage') and response.usage else 0
+        from litellm import completion_cost
+        try:
+            cost = completion_cost(completion_response=response)
+        except Exception:
+            logger.warning(f"Não foi possível calcular o custo do Agente para o modelo {model_id}")
+            cost = 0.0
+            
         # Parse the new markdown format
         scratchpad_match = re.search(r'<scratchpad>(.*?)</scratchpad>', content, re.DOTALL | re.IGNORECASE)
         general_comments = scratchpad_match.group(1).strip() if scratchpad_match else "Sem comentários gerais."
@@ -180,15 +189,16 @@ Tipo de seção: {section.type}
         }
         
         # Salva o log agrupado por execução e separado por agente
-        _save_agent_log(execution_id, section.type, architecture, model_id, agent_name, {
+        doc_id = getattr(section, 'document_id', '') or ""
+        _save_agent_log(doc_id, execution_id, section.type, architecture, model_id, agent_name, {
             "raw_response": content,
             "parsed": review_dict
         })
         
-        return ReviewResult(**review_dict)
+        return ReviewResult(**review_dict), tokens, cost
     except Exception as e:
         logger.error(f"Erro na execução do modelo {model_id} (Agente: {agent_name}): {e}")
-        return ReviewResult(general_comments=f"Erro na execução do agente {agent_name}: {e}", observations=[])
+        return ReviewResult(general_comments=f"Erro na execução do agente {agent_name}: {e}", observations=[]), 0, 0.0
 
 
 # --- Estado do Subgrafo (LangGraph) ---
@@ -207,6 +217,8 @@ class ExecutionState(TypedDict):
     agent_reviews: Annotated[Dict[str, ReviewResult], merge_dicts]
     current_chain_review: Optional[ReviewResult]
     final_review: Optional[ReviewResult]
+    total_tokens: Annotated[int, operator.add]
+    total_cost: Annotated[float, operator.add]
 
 
 # --- Construtor Dinâmico do LangGraph ---
@@ -236,7 +248,7 @@ def build_execution_graph(decision: RouterDecision) -> StateGraph:
                     contexts.append(f"## Revisão do Agente {name}:\nComentários: {rev.general_comments}\nObservações: {obs_json}")
                 additional_context = "Revisões independentes para consolidar e julgar:\n" + "\n".join(contexts)
 
-            res = _call_llm_for_review(
+            res, tokens, cost = _call_llm_for_review(
                 model_id=model_alloc.model_id,
                 system_prompt=prompt,
                 section=state["section"],
@@ -246,7 +258,11 @@ def build_execution_graph(decision: RouterDecision) -> StateGraph:
                 additional_context=additional_context
             )
             
-            updates = {"agent_reviews": {model_alloc.agent_name: res}}
+            updates = {
+                "agent_reviews": {model_alloc.agent_name: res},
+                "total_tokens": tokens,
+                "total_cost": cost
+            }
             if role in ["chain_starter", "chain_refiner"]:
                 updates["current_chain_review"] = res
             if role in ["single", "chain_final", "judge", "synthesizer", "consolidator"]:
@@ -382,7 +398,7 @@ def build_execution_graph(decision: RouterDecision) -> StateGraph:
     return workflow.compile()
 
 
-def execute_architecture(decision: RouterDecision, section: Section) -> ReviewResult:
+def execute_architecture(decision: RouterDecision, section: Section) -> Tuple[ReviewResult, int, float]:
     """
     Orquestra a produção colaborativa baseada na topologia escolhida construindo um Grafo (LangGraph).
     """
@@ -400,7 +416,9 @@ def execute_architecture(decision: RouterDecision, section: Section) -> ReviewRe
         "execution_id": execution_id,
         "agent_reviews": {},
         "current_chain_review": None,
-        "final_review": None
+        "final_review": None,
+        "total_tokens": 0,
+        "total_cost": 0.0
     }
     
     # 3. Invoca o LangGraph
@@ -408,6 +426,6 @@ def execute_architecture(decision: RouterDecision, section: Section) -> ReviewRe
     
     if not final_state.get("final_review"):
         logger.error(f"Erro Crítico: Nenhuma revisão gerada pelo Sub-Grafo da arquitetura {decision.architecture}")
-        return ReviewResult(general_comments="Erro Crítico na execução do LangGraph interno.", observations=[])
+        return ReviewResult(general_comments="Erro Crítico na execução do LangGraph interno.", observations=[]), 0, 0.0
         
-    return final_state["final_review"]
+    return final_state["final_review"], final_state.get("total_tokens", 0), final_state.get("total_cost", 0.0)
