@@ -161,7 +161,9 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     base_name = os.path.basename(pdf_path)
     name_without_ext = os.path.splitext(base_name)[0]
     
-    cost_filename = os.path.join(costs_dir, f"cost_{name_without_ext}.json")
+    import datetime
+    timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    cost_filename = os.path.join(costs_dir, f"cost_{name_without_ext}_{timestamp_str}.json")
     with open(cost_filename, "w", encoding="utf-8") as f:
         import json
         json.dump(global_cost, f, indent=2, ensure_ascii=False)
