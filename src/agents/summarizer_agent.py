@@ -69,7 +69,7 @@ Texto Original:
         cost_usd=cost_usd
     )
 
-    vector_db.index_record(record)
+    emb_tokens, emb_cost = vector_db.index_record(record)
     logger.info(f"Sumarização e indexação concluídas (ID: {record.id})")
 
-    return record, tokens, cost
+    return record, tokens + emb_tokens, cost + emb_cost

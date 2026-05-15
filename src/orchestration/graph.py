@@ -76,14 +76,20 @@ def evaluator_node(state: ReviewState) -> dict:
     
     # --- Indexação de TODAS as tentativas ---
     # Indexamos a tentativa atual no banco vetorial para o histórico do Roteador
-    summarize_and_index(
+    accumulated_tokens = state.get("total_tokens", 0) + tokens
+    accumulated_cost = state.get("total_cost", 0.0) + cost
+    
+    _, sum_tokens, sum_cost = summarize_and_index(
         section=section,
         review=review,
         decision=decision,
         score=score.score,
-        cost_tokens=tokens,
-        cost_usd=cost
+        cost_tokens=accumulated_tokens,
+        cost_usd=accumulated_cost
     )
+    
+    total_node_tokens = tokens + sum_tokens
+    total_node_cost = cost + sum_cost
     
     # Atualiza o melhor score se necessário
     best_score = state.get("best_score", -1.0)
@@ -101,8 +107,8 @@ def evaluator_node(state: ReviewState) -> dict:
         "best_score": best_score,
         "best_review": best_review,
         "best_decision": best_decision,
-        "total_tokens": tokens,
-        "total_cost": cost
+        "total_tokens": total_node_tokens,
+        "total_cost": total_node_cost
     }
 
 def summarizer_node(state: ReviewState) -> dict:

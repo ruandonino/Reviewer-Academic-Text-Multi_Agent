@@ -77,10 +77,11 @@ def mount_router_prompt(section: Section, history: List[Dict[str, Any]]) -> str:
         {section.text[:1000]}... [truncado para contexto]
 
         ## Parâmetros de Avaliação
-        NOTA MÍNIMA PARA APROVAÇÃO: {settings.quality_threshold}/100.
+        NOTA MÍNIMA PARA APROVAÇÃO: {settings.quality_threshold} em escala de 0 a 100.
         (A revisão gerada pelos agentes que você escolher precisará atingir ou superar essa nota para ser considerada um sucesso pelo Avaliador. Leve isso em conta ao decidir se deve usar um modelo ou uma arquitetura mais caro/robusto em seções complexas).
 
         ## Histórico de Revisões Semelhantes (RAG)
+        ATENÇÃO: Registros com notas ABAIXO de {settings.quality_threshold} indicam que a arquitetura ou modelo utilizado FALHOU.
         {history_text}
 
         ## Arquiteturas Disponíveis e Seus Agentes
@@ -111,12 +112,11 @@ def mount_router_prompt(section: Section, history: List[Dict[str, Any]]) -> str:
         - Agentes de análise intermediária → modelos de custo **MÉDIO**.
         - Apenas agentes críticos (juízes finais, consolidadores, avaliadores em seções de ALTA complexidade) → modelos de custo **ALTO**.
         - Sempre que dois modelos entregarem qualidade equivalente para a tarefa, **escolha o mais barato**.
-        - Considere o histórico: se seções semelhantes foram bem revisadas com modelos de custo BAIXO, simples, escolha os modelos de MENOR CUSTO **não escale desnecessariamente**.
 
-        ### 4. Aprendizado com o Histórico
-        - Se o histórico mostra que seções semelhantes foram revisadas com sucesso usando configurações mais baratas, **replique essa escolha** em vez de optar por algo mais caro "por segurança".
-        - Se o histórico mostra falhas ou revisões insuficientes com modelos baratos, escale apenas os agentes específicos que precisam de mais capacidade.
-        - Antes de decidir por um modelo de custo ALTO, tente utilizar modelos de custo MÉDIO ou uma arquitetura com mais agentes para compensar, e só escale para ALTO se isso não for suficiente.
+        ### 4. Aprendizado com o Histórico (CRÍTICO)
+        - Se o histórico mostra que seções semelhantes foram revisadas com sucesso (nota >= {settings.quality_threshold}) usando configurações mais baratas, **replique essa escolha**. 
+        - Ao enfrentar uma falha prévia, a estratégia correta é primeiro tentar utilizar uma **arquitetura mais complexa (multi-agente)**. A multiplicidade de agentes compensará as limitações.
+        - Somente se a arquitetura complexa com modelos médios/baixos também já tiver falhado no histórico é que você deve escalar para modelos de custo mais altos.
 
         ## Formato de Resposta
 
@@ -126,12 +126,13 @@ def mount_router_prompt(section: Section, history: List[Dict[str, Any]]) -> str:
             "models": [
                 {{"agent_name": "<nome_exato_do_agente_da_arquitetura_escolhida>", "model_id": "<um_dos_modelos_disponiveis>"}}
             ],
-            "reasoning": "Sua justificativa baseada no histórico e complexidade. **Inclua obrigatoriamente**: (a) o nível de complexidade atribuído à seção, (b) por que a arquitetura escolhida é adequada (e não excessiva) para esse nível, e (c) a justificativa de custo-benefício para cada modelo alocado.",
+            "reasoning": "Sua justificativa baseada no histórico e complexidade. **Inclua obrigatoriamente**: (a) o nível de complexidade, (b) a adequação da arquitetura, e (c) SE houver histórico de reprovação, justifique explicitamente como a sua nova escolha resolve a falha anterior.",
             "system_prompt": "Instruções específicas de revisão para esta seção, considerando seu tipo e o que foi aprendido no histórico."
         }}
         ATENÇÃO: A propriedade 'models' do JSON deve conter EXATAMENTE os agentes exigidos pela arquitetura escolhida.
         O 'system_prompt' será passado para os agentes revisores para guiar o tom e o foco da análise, não adicone ao 'system_prompt' instruções relacionados a erros gramaticais ou de digitação, assim como erros de fonte como itálico ou negrito.
     """
+    return prompt
     return prompt
 
 def route_section(section: Section) -> Tuple[RouterDecision, List[Dict[str, Any]], int, float]:
@@ -141,7 +142,7 @@ def route_section(section: Section) -> Tuple[RouterDecision, List[Dict[str, Any]
     logger.info(f"Iniciando roteamento para seção: {section.type}")
     
     # Etapa 2: RAG
-    history = vector_db.retrieve_context(section.text, section.type, settings.k_nearest_neighbors)
+    history, emb_tokens, emb_cost = vector_db.retrieve_context(section.text, section.type, settings.k_nearest_neighbors)
     
     # Etapa 3: Prompt Engineering e Inferência
     prompt = mount_router_prompt(section, history)
@@ -176,7 +177,7 @@ def route_section(section: Section) -> Tuple[RouterDecision, List[Dict[str, Any]
         decision = RouterDecision(**decision_dict)
         
         logger.info(f"Roteador decidiu arquitetura: {decision.architecture}")
-        return decision, history, tokens, cost
+        return decision, history, tokens + emb_tokens, cost + emb_cost
     except Exception as e:
         logger.error(f"Erro no Agente Roteador: {e}")
         # Fallback seguro

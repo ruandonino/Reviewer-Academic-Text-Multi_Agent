@@ -2,21 +2,27 @@ import asyncio
 import os
 import sys
 from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
 from src.ingestion.parsers import convert_pdf_to_markdown
 from src.ingestion.segmenter import segmentar_secoes
 from src.orchestration.graph import build_review_graph
 from src.agents.synthesizer_agent import synthesize_final_report
 from src.utils.logger import get_logger
 
-load_dotenv(override=True)
 logger = get_logger()
 
 from src.models.review import ReviewResult
+
+import time
 
 async def process_section_async(section, app_graph):
     """
     Processa uma seção individual de forma assíncrona usando o LangGraph.
     """
+    import time
+    start_time = time.time()
     logger.info(f"==> Iniciando processamento para seção: {section.type} (Posição {section.position})")
     
     initial_state = {
@@ -43,18 +49,22 @@ async def process_section_async(section, app_graph):
                 observations=[]
             )
             
-        logger.info(f"<== Processamento concluído para seção: {section.type}")
-        return (section, best_review, final_state.get("total_cost", 0.0), final_state.get("total_tokens", 0))
+        elapsed_time = time.time() - start_time
+        logger.info(f"<== Processamento concluído para seção: {section.type} em {elapsed_time:.2f}s")
+        return (section, best_review, final_state.get("total_cost", 0.0), final_state.get("total_tokens", 0), elapsed_time)
         
     except Exception as e:
+        elapsed_time = time.time() - start_time
         logger.error(f"Erro catastrófico ao processar seção {section.type}: {e}")
         fallback_review = ReviewResult(
             general_comments=f"Erro crítico no processamento da seção {section.type}: {str(e)}",
             observations=[]
         )
-        return (section, fallback_review, 0.0, 0)
+        return (section, fallback_review, 0.0, 0, elapsed_time)
 
 async def main():
+    import time
+    global_start_time = time.time()
     logger.info("Iniciando Sistema Multiagente de Revisão Acadêmica")
     
     # Verifica API Key para LiteLLM
@@ -140,10 +150,11 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     total_sections_cost = 0.0
     total_sections_tokens = 0
     
-    for sec, rev, sec_cost, sec_tokens in revisoes_validas:
+    for sec, rev, sec_cost, sec_tokens, sec_time in revisoes_validas:
         section_costs[sec.type] = {
             "tokens": sec_tokens,
-            "cost_usd": sec_cost
+            "cost_usd": sec_cost,
+            "time_seconds": sec_time
         }
         total_sections_cost += sec_cost
         total_sections_tokens += sec_tokens
@@ -301,23 +312,36 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
             parsed_sections[mapped_key]["observacao_semantica"].extend(obs_semantica)
             
     corpo_do_trabalho = {}
-    for sec, rev, sec_cost, sec_tokens in revisoes_validas:
+    for sec, rev, sec_cost, sec_tokens, sec_time in revisoes_validas:
         json_key = section_mapping.get(sec.type, sec.type)
         
         parsed_data = parsed_sections.get(json_key, {"observacao_normativa": [], "observacao_semantica": []})
         
-        corpo_do_trabalho[json_key] = {
-            "presente": True,
-            "pagina_inicio": 1,
-            "pagina_fim": 1,
-            "texto": sec.text[:500] + "..." if len(sec.text) > 500 else sec.text,
-            "revisor": [
-                {
-                    "1": parsed_data
-                }
-            ]
-        }
+        # If the key already exists (e.g., from a different chunk of the same section), append to it, but don't overwrite the base data
+        if json_key in corpo_do_trabalho:
+            corpo_do_trabalho[json_key]["texto"] += "\n...\n" + (sec.text[:500] + "..." if len(sec.text) > 500 else sec.text)
+            corpo_do_trabalho[json_key]["revisor"][0]["1"]["cost_usd"] += sec_cost
+            corpo_do_trabalho[json_key]["revisor"][0]["1"]["time_seconds"] += sec_time
+        else:
+            corpo_do_trabalho[json_key] = {
+                "presente": True,
+                "pagina_inicio": 1,
+                "pagina_fim": 1,
+                "texto": sec.text[:500] + "..." if len(sec.text) > 500 else sec.text,
+                "revisor": [
+                    {
+                        "1": {
+                            "observacao_normativa": parsed_data["observacao_normativa"],
+                            "observacao_semantica": parsed_data["observacao_semantica"],
+                            "cost_usd": sec_cost,
+                            "time_seconds": sec_time
+                        }
+                    }
+                ]
+            }
         
+    global_elapsed_time = time.time() - global_start_time
+    
     json_report = {
         "metadata": {
             "tcc_id": name_without_ext,
@@ -329,7 +353,8 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
             "idioma": "pt-BR",
             "num_paginas": 0,
             "total_tokens": global_cost["grand_total_tokens"],
-            "total_cost_usd": global_cost["grand_total_cost_usd"]
+            "total_cost_usd": global_cost["grand_total_cost_usd"],
+            "total_time_seconds": global_elapsed_time
         },
         "corpo_do_trabalho": corpo_do_trabalho,
         "general": {

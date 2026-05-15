@@ -13,16 +13,18 @@ from src.utils.logger import get_logger
 
 logger = get_logger()
 
+from typing import Tuple
+
 # Mocking embedding function to run test without requiring OpenAI API Key
-def mock_gerar_embedding(texto: str) -> list[float]:
+def mock_gerar_embedding(texto: str) -> Tuple[list[float], int, float]:
     """Mock for generating embedding based on text length (dummy vector)"""
     import math
     vector = [float(len(texto)) * math.sin(i) for i in range(1536)]
     # Normalize
     norm = math.sqrt(sum([x**2 for x in vector]))
     if norm == 0:
-        return [0.0] * 1536
-    return [x / norm for x in vector]
+        return [0.0] * 1536, 10, 0.001
+    return [x / norm for x in vector], 10, 0.001
 
 def run_test():
     # Override the embedding generator se não houver chave

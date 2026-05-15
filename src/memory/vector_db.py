@@ -1,6 +1,6 @@
 import chromadb
 from chromadb.config import Settings as ChromaSettings
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from src.config import settings
 from src.models.summary import SummaryRecord
 from src.memory.embeddings import gerar_embedding
@@ -23,16 +23,16 @@ class VectorDB:
         )
         logger.info(f"Conectado ao ChromaDB em {settings.chroma_db_dir}")
 
-    def index_record(self, record: SummaryRecord):
+    def index_record(self, record: SummaryRecord) -> Tuple[int, float]:
         """
-        Indexa um registro no banco de dados vetorial.
+        Indexa um registro no banco de dados vetorial. Retorna (tokens, custo).
         """
         try:
-            vector = gerar_embedding(record.text_content)
+            vector, tokens, cost = gerar_embedding(record.text_content)
             
             if not vector:
                 logger.warning(f"Ignorando indexação do registro {record.id} - embedding vazio.")
-                return
+                return 0, 0.0
                 
             self.collection.add(
                 documents=[record.text_content],
@@ -50,17 +50,20 @@ class VectorDB:
                 ids=[record.id]
             )
             logger.info(f"Registro {record.id} indexado com sucesso no ChromaDB.")
+            return tokens, cost
         except Exception as e:
             logger.error(f"Falha ao indexar registro {record.id}: {e}")
+            return 0, 0.0
 
-    def retrieve_context(self, section_text: str, section_type: str, k: int = 3) -> List[Dict[str, Any]]:
+    def retrieve_context(self, section_text: str, section_type: str, k: int = 3) -> Tuple[List[Dict[str, Any]], int, float]:
         """
         Realiza a busca por similaridade semântica para RAG do Roteador (Etapa 2).
+        Retorna (historico, tokens, custo).
         """
         try:
-            vector = gerar_embedding(section_text)
+            vector, tokens, cost = gerar_embedding(section_text)
             if not vector:
-                return []
+                return [], 0, 0.0
                 
             results = self.collection.query(
                 query_embeddings=[vector],
@@ -79,11 +82,11 @@ class VectorDB:
                     })
             
             logger.info(f"Recuperados {len(historico)} registros históricos para o tipo '{section_type}'.")
-            return historico
+            return historico, tokens, cost
             
         except Exception as e:
             logger.error(f"Falha ao recuperar contexto do ChromaDB: {e}")
-            return []
+            return [], 0, 0.0
 
 # Singleton instance
 vector_db = VectorDB()
