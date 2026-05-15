@@ -116,6 +116,7 @@ def mount_router_prompt(section: Section, history: List[Dict[str, Any]]) -> str:
         ### 4. Aprendizado com o Histórico
         - Se o histórico mostra que seções semelhantes foram revisadas com sucesso usando configurações mais baratas, **replique essa escolha** em vez de optar por algo mais caro "por segurança".
         - Se o histórico mostra falhas ou revisões insuficientes com modelos baratos, escale apenas os agentes específicos que precisam de mais capacidade.
+        - Antes de decidir por um modelo de custo ALTO, tente utilizar modelos de custo MÉDIO ou uma arquitetura com mais agentes para compensar, e só escale para ALTO se isso não for suficiente.
 
         ## Formato de Resposta
 

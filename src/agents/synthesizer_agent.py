@@ -1,5 +1,5 @@
 import json
-from typing import List, Tuple
+from typing import List, Tuple, Any
 from src.utils.llm_client import safe_completion as completion
 from src.models.review import ReviewResult
 from src.config import settings
@@ -9,18 +9,18 @@ logger = get_logger()
 
 SYNTHESIZER_MODEL = settings.synthesizer_model
 
-def synthesize_final_report(reviews: List[ReviewResult]) -> Tuple[str, int, float]:
+def synthesize_final_report(reviews_with_sections: List[Tuple[Any, ReviewResult]]) -> Tuple[str, int, float]:
     """
     Consolida as revisões parciais em um relatório unificado (Etapa 8)
     """
-    logger.info(f"Iniciando síntese de {len(reviews)} revisões parciais.")
+    logger.info(f"Iniciando síntese de {len(reviews_with_sections)} revisões parciais.")
     
-    if not reviews:
+    if not reviews_with_sections:
         return "Nenhuma revisão gerada para síntese.", 0, 0.0
         
     reviews_json = []
-    for i, rev in enumerate(reviews):
-        reviews_json.append(f"--- REVISÃO PARCIAL {i+1} ---\n{rev.model_dump_json(indent=2)}\n")
+    for i, (sec, rev) in enumerate(reviews_with_sections):
+        reviews_json.append(f"--- REVISÃO DA SEÇÃO: {sec.type.upper()} ---\n{rev.model_dump_json(indent=2)}\n")
         
     all_reviews_text = "\n".join(reviews_json)
     
@@ -34,11 +34,13 @@ Sua tarefa é consolidar as revisões parciais das diferentes seções de um tra
 ## Estrutura Exigida para o Relatório:
 1. Visão Geral do Documento e Integração entre Seções: Analise o documento como um todo com base nas revisões. Crie observações gerais focadas na coesão, coerência e integração lógica entre as diferentes seções do texto (ex: os métodos descritos sustentam a conclusão? A introdução dialoga bem com o referencial teórico?).
 2. Revisões Detalhadas por Seção seguindo a ordem canônica das seções do documento (Título, Resumo, Introdução, etc.): Para CADA seção analisada, você DEVE listar TODOS os apontamentos gerados que sejam do tipo "semântica" ou "normativa". Para cada observação, apresente explicitamente no formato de lista:
+**RESTRIÇÃO:** As seções da revisão gerada não serem (Título, Resumo, Introdução, Referêncial Teórico, Metodologia, Resultados, Conclusão e Referências.) será considerada uma falha grave na sua tarefa.
+**RESTRIÇÃO:** **NÃO AVALIE:** Erros de digitação, erros gramaticais, erros ortográficos, uso de itálico ou formatação de fonte. Se você encontrar um erro desse tipo, IGNORE-O.
    - Trecho (Insira a referência ou o trecho que apresenta a falha)
    - Problema (Issue)
    - Sugestão (Suggestion)
    - Tipo (Normativa ou Semântica)
-   Não omita nenhuma observação. Apresente todas de forma organizada.
+**IMPORTANTE**   Não omita nenhuma observação. Apresente todas de forma organizada.
 3. Conclusão da Revisão: Finalize o relatório listando de forma clara e objetiva:
    - Aspectos Positivos (Pontos fortes do trabalho)
    - Problemas Principais (As falhas mais críticas que precisam de atenção)

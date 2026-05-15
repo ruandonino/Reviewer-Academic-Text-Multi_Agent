@@ -126,8 +126,8 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     
     # Etapa 8: Síntese Final
     logger.info("Etapa 8: Síntese Final")
-    reviews_only = [r[1] for r in revisoes_validas]
-    relatorio_final, synth_tokens, synth_cost = synthesize_final_report(reviews_only)
+    reviews_with_sections = [(r[0], r[1]) for r in revisoes_validas]
+    relatorio_final, synth_tokens, synth_cost = synthesize_final_report(reviews_with_sections)
     
     logger.info("=== RELATÓRIO FINAL ===")
     print(relatorio_final)
@@ -225,8 +225,11 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
         "referencial teórico": "revisao_bibliografica",
         "revisão da literatura": "revisao_bibliografica",
         "metodologia": "metodologia",
+        "desenvolvimento": "metodologia",
         "resultados": "resultados",
+        "discussão": "conclusao",
         "discussão e conclusão": "conclusao",
+        "conclusão": "conclusao",
         "referências": "referencias"
     }
     
@@ -243,11 +246,14 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
             general_semantica.append(f"Problema: Visão Geral - {title.strip()}\nSugestão: {text.strip()}")
 
     # Extrair Revisões Detalhadas
-    section_2_match = re.search(r'## 2\..*?(?=## 3\.)', relatorio_final, re.DOTALL | re.IGNORECASE)
+    section_2_match = re.search(r'## 2\. Revisões Detalhadas por Seção(.*?)## 3\. Conclusão da Revisão', relatorio_final, re.DOTALL | re.IGNORECASE)
     if section_2_match:
-        section_2_text = section_2_match.group(0)
-        parts = re.split(r'\n###\s+', section_2_text)
-        for part in parts[1:]:
+        section_2_text = section_2_match.group(1)
+        # Split por subseções H3 ou H4
+        parts = re.split(r'\n(?:####|###)\s+', section_2_text)
+        for part in parts:
+            if not part.strip():
+                continue
             lines = part.split('\n')
             sec_title_line = lines[0].lower()
             
@@ -263,28 +269,36 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
             obs_normativa = []
             obs_semantica = []
             
-            prob_matches = re.finditer(r'\*\*Problema:\*\*(.*?)(?=\n\s*\*\s*\*\*Sugestão:\*\*)', part, re.DOTALL | re.IGNORECASE)
-            sug_matches = list(re.finditer(r'\*\*Sugestão:\*\*(.*?)(?=\n\s*\*\s*\*\*Tipo:\*\*)', part, re.DOTALL | re.IGNORECASE))
-            tipo_matches = list(re.finditer(r'\*\*Tipo:\*\*(.*?)(?=\n\s*\*\s*\*\*Trecho:\*\*|\n\s*\*\s*\*\*Problema:\*\*|$)', part, re.DOTALL | re.IGNORECASE))
-            
-            for i, prob_match in enumerate(prob_matches):
-                try:
-                    prob = prob_match.group(1).strip()
-                    sug = sug_matches[i].group(1).strip()
-                    tipo = tipo_matches[i].group(1).strip().lower()
+            # Novo regex unificado e mais robusto para capturar os blocos
+            # Ignora Trecho se houver, captura Problema, Sugestão e Tipo
+            blocks_matches = re.finditer(
+                r'\*\*Problema:\*\*(.*?)\*\*Sugestão:\*\*(.*?)\*\*Tipo:\*\*(.*?)(?=\n\s*(?:[-*]\s*)?(?:\*\*Trecho:\*\*|\*\*Problema:\*\*)|$)',
+                part,
+                re.DOTALL | re.IGNORECASE
+            )            
+            for match in blocks_matches:
+                prob = match.group(1).strip()
+                sug = match.group(2).strip()
+                tipo = match.group(3).strip().lower()
+                
+                # Limpa eventuais resíduos do split
+                tipo = tipo.split('\n')[0].strip().replace('*', '').strip()
+                
+                suggestion_text = f"Problema: {prob}\nSugestão: {sug}"
+                if "normativa" in tipo:
+                    obs_normativa.append(suggestion_text)
+                else:
+                    obs_semantica.append(suggestion_text)
                     
-                    suggestion_text = f"Problema: {prob}\nSugestão: {sug}"
-                    if "normativa" in tipo:
-                        obs_normativa.append(suggestion_text)
-                    else:
-                        obs_semantica.append(suggestion_text)
-                except Exception as e:
-                    pass
-                    
-            parsed_sections[section_mapping[matched_sec_type]] = {
-                "observacao_normativa": obs_normativa,
-                "observacao_semantica": obs_semantica
-            }
+            mapped_key = section_mapping[matched_sec_type]
+            if mapped_key not in parsed_sections:
+                parsed_sections[mapped_key] = {
+                    "observacao_normativa": [],
+                    "observacao_semantica": []
+                }
+                
+            parsed_sections[mapped_key]["observacao_normativa"].extend(obs_normativa)
+            parsed_sections[mapped_key]["observacao_semantica"].extend(obs_semantica)
             
     corpo_do_trabalho = {}
     for sec, rev, sec_cost, sec_tokens in revisoes_validas:
@@ -313,7 +327,9 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
             "ano": 2025,
             "norma_referencia": "ABNT",
             "idioma": "pt-BR",
-            "num_paginas": 0
+            "num_paginas": 0,
+            "total_tokens": global_cost["grand_total_tokens"],
+            "total_cost_usd": global_cost["grand_total_cost_usd"]
         },
         "corpo_do_trabalho": corpo_do_trabalho,
         "general": {
