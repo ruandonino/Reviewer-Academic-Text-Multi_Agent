@@ -65,6 +65,8 @@ def load_agent_prompt(agent_name: str, router_instructions: str, section_type: s
     
     # Normaliza nomes para pastas
     safe_section = section_type.lower().replace(" ", "_")
+    if safe_section in ["revisão_da_literatura", "background", "related_work"]:
+        safe_section = "referencial_teórico"
     safe_arch = architecture.lower()
     
     # Caminho ideal: src/prompts/{section_type}/{architecture}/{agent_name}.md
@@ -91,6 +93,8 @@ def load_agent_prompt(agent_name: str, router_instructions: str, section_type: s
         
     if "{router_instructions}" in template:
         prompt = template.replace("{router_instructions}", router_instructions)
+    elif "<output_formatting>" in template:
+        prompt = template.replace("<output_formatting>", f"Diretrizes Específicas para esta Seção pelo Roteador:\n{router_instructions}\n\n<output_formatting>")
     else:
         prompt = f"{template}\n\nDiretrizes Específicas para esta Seção:\n{router_instructions}"
         
@@ -104,18 +108,20 @@ import time
 def _call_llm_for_review(model_id: str, system_prompt: str, section: Section, execution_id: str, agent_name: str, architecture: str, additional_context: str = "") -> Tuple[ReviewResult, int, float]:
     """Função utilitária agnóstica de provedor usando LiteLLM"""
     prompt = f"""
-
 <dynamic_context>
 Você receberá os dados do usuário nas seguintes tags:
 <texto_submetido>
 Tipo de seção: {section.type}
 {section.text}
 </texto_submetido>
-<contexto_adicional>
-{system_prompt}
+
+<contexto_adicional_router_e_pares>
 {additional_context}
-</contexto_adicional>
+</contexto_adicional_router_e_pares>
+
 </dynamic_context>
+
+{system_prompt}
 """
     try:
         # Jitter maior para evitar Rate Limits em chamadas paralelas

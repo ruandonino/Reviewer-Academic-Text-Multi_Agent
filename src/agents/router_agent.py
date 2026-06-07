@@ -183,7 +183,7 @@ def route_section(section: Section) -> Tuple[RouterDecision, List[Dict[str, Any]
         # Fallback seguro
         fallback = RouterDecision(
             architecture="Single",
-            models=[ModelAllocation(agent_name="revisor_1", model_id="gemini/gemma-3-27b-it")],
+            models=[ModelAllocation(agent_name="revisor_1", model_id=ROUTER_MODEL)],
             reasoning="Fallback devido a erro de inferência.",
             system_prompt="Revise a seção prestando atenção em clareza, norma culta e fluxo lógico."
         )

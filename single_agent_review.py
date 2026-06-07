@@ -22,6 +22,8 @@ logger = get_logger()
 REVIEW_MODEL = settings.synthesizer_model
 
 def review_entire_pdf(pdf_path: str, model_name: str = "gemini/gemini-2.5-flash-lite"):
+    import time
+    start_time = time.time()
     logger.info(f"Iniciando revisão de agente único para o arquivo: {pdf_path} com modelo: {model_name}")
     
     if not os.path.exists(pdf_path):
@@ -44,15 +46,14 @@ def review_entire_pdf(pdf_path: str, model_name: str = "gemini/gemini-2.5-flash-
 Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do trabalho acadêmico abaixo e fornecer uma revisão detalhada, crítica e estruturada.
 
 ## REGRAS DE OURO (LEIA ANTES DE COMEÇAR):
-1. **NÃO AVALIE:** Erros de digitação, erros gramaticais, erros ortográficos, uso de itálico ou formatação de fonte. Se você encontrar um erro desse tipo, IGNORE-O.
-2. **RESTRIÇÃO:** As seções da revisão gerada não serem (Título, Resumo, Introdução, Referêncial Teórico, Metodologia, Resultados, Conclusão e Referências.) será considerada uma falha grave na sua tarefa.
+**RESTRIÇÃO:** As seções da revisão gerada não serem (Título, Resumo, Introdução, Referêncial Teórico, Metodologia, Resultados, Conclusão e Referências.) será considerada uma falha grave na sua tarefa.
 
 ## Diretrizes da Revisão:
 1. **Visão Geral:** Dê um parecer geral sobre o trabalho, destacando a relevância do tema, clareza da escrita e estrutura.
 2. Revisões Detalhadas por Seção. Você DEVE obrigatoriamente incluir na sua análise as seguintes seções: Título, Resumo, Introdução, Referêncial Teórico, Metodologia, Resultados, Conclusão e Referências. Para cada observação, apresente explicitamente no formato de lista:
    - Problema (Issue)
    - Sugestão (Suggestion)
-   - Tipo (Normativa ou Semântica)
+   - Tipo (Normativa (Relacionado a normas como APA e ABNT ou erros ortográficos) ou Semântica)
 3. **Conclusão da Revisão:** Liste os pontos fortes e os pontos críticos que exigem maior atenção do autor.
 
 # Relatório Final de Revisão Acadêmica
@@ -142,24 +143,37 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
         # Geração do JSON no formato esperado
         section_mapping = {
             "título": "titulo",
+            "title": "titulo",
             "resumo": "resumo",
+            "abstract": "resumo",
             "introdução": "introducao",
+            "introduction": "introducao",
+            "referêncial teórico": "revisao_bibliografica",
             "referencial teórico": "revisao_bibliografica",
             "revisão da literatura": "revisao_bibliografica",
+            "background": "revisao_bibliografica",
+            "related work": "revisao_bibliografica",
             "metodologia": "metodologia",
             "desenvolvimento": "metodologia",
+            "methodology": "metodologia",
+            "development": "metodologia",
+            "design": "metodologia",
             "resultados": "resultados",
-            "conclusões": "conclusao",
-            "conclusão": "conclusao",
+            "results": "resultados",
+            "discussão": "conclusao",
+            "discussion": "conclusao",
             "discussão e conclusão": "conclusao",
-            "referências": "referencias"
+            "conclusão": "conclusao",
+            "conclusion": "conclusao",
+            "referências": "referencias",
+            "references": "referencias"
         }
         
         parsed_sections = {}
         general_semantica = []
 
         # Extrair Visão Geral
-        section_1_match = re.search(r'## 1\. Visão Geral.*?(?=## 2\.)', review_content, re.DOTALL | re.IGNORECASE)
+        section_1_match = re.search(r'##\s*(?:1\.\s*)?Visão Geral.*?(?=##\s*(?:2\.\s*)?Revisões Detalhadas|###\s*Seção:)', review_content, re.DOTALL | re.IGNORECASE)
         if section_1_match:
             section_1_text = section_1_match.group(0)
             bullets = re.findall(r'\*\s*\*\*(.*?):\*\*\s*(.*?)(?=\n\s*\*|$)', section_1_text, re.DOTALL | re.IGNORECASE)
@@ -167,13 +181,10 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
                 general_semantica.append(f"Problema: Visão Geral - {title.strip()}\nSugestão: {text.strip()}")
 
         # Extrair Revisões Detalhadas
-        # Aumentamos o escopo da regex para capturar tudo entre ## 2. e ## 3. (Conclusão da Revisão)
-        # Extrair Revisões Detalhadas
-        section_2_match = re.search(r'## 2\. Revisões Detalhadas por Seção(.*?)## 3\. Conclusão da Revisão', review_content, re.DOTALL | re.IGNORECASE)
+        section_2_match = re.search(r'(?:##\s*(?:2\.\s*)?Revisões Detalhadas por Seção|###\s*Seção:\s*T[ÍI]TULO)(.*?)(?:##\s*(?:3\.\s*)?Conclusão da Revisão|###\s*Aspectos Positivos|$)', review_content, re.DOTALL | re.IGNORECASE)
         if section_2_match:
-            section_2_text = section_2_match.group(1)
-            # Split por subseções H3 ou H2
-            parts = re.split(r'\n(?:###|##)(?:\s+\d+\.\d+)?\s+', section_2_text)
+            section_2_text = review_content[section_2_match.start():section_2_match.end()]
+            parts = re.split(r'\n(?:####|###)\s+', section_2_text)
             for part in parts:
                 if not part.strip():
                     continue
@@ -209,9 +220,11 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
                     
                     suggestion_text = f"Problema: {prob}\nSugestão: {sug}"
                     if "normativa" in tipo:
-                        obs_normativa.append(suggestion_text)
+                        if suggestion_text not in obs_normativa:
+                            obs_normativa.append(suggestion_text)
                     else:
-                        obs_semantica.append(suggestion_text)
+                        if suggestion_text not in obs_semantica:
+                            obs_semantica.append(suggestion_text)
         
         # Extrair especificamente a seção 3 (Conclusão da Revisão) para general_semantica
         section_3_match = re.search(r'## 3\. Conclusão da Revisão(.*?)(?=$)', review_content, re.DOTALL | re.IGNORECASE)
@@ -236,6 +249,8 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
                 ]
             }
             
+        elapsed_time = time.time() - start_time
+        
         json_report = {
             "metadata": {
                 "tcc_id": name_without_ext,
@@ -247,7 +262,8 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
                 "idioma": "pt-BR",
                 "num_paginas": 0,
                 "total_tokens": tokens,
-                "total_cost_usd": cost
+                "total_cost_usd": cost,
+                "total_time_seconds": elapsed_time
             },
             "corpo_do_trabalho": corpo_do_trabalho,
             "general": {

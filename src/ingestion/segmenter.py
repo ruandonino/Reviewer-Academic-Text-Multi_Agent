@@ -18,36 +18,81 @@ def normalizar_texto(texto: str) -> str:
 
 import Levenshtein
 
-def mapear_para_secao_canonica(header: str, threshold: float = 0.8) -> Optional[str]:
+def mapear_para_secao_canonica(header: str, threshold: float = 0.8, is_first_header: bool = False, doc_title: str = "") -> Optional[str]:
     """
     Mapeia um título de seção Markdown para uma categoria canônica usando busca exata e fuzzy matching.
     """
     header_clean = normalizar_texto(re.sub(r'^#+\s*', '', header))
     
-    # 1. Tentativa de busca exata ou por palavra-chave (Alta prioridade)
-    for section_type in CANONICAL_SECTIONS:
-        if section_type in header_clean:
-            return section_type
-            
-    # Heurísticas para Desenvolvimento, Materiais e Métodos -> Metodologia
-    if "desenvolvimento" in header_clean or "materiais e métodos" in header_clean or "materiais e metodos" in header_clean:
-        return "metodologia"
-        
-    # Heurísticas para Discussão e Conclusão -> Discussão e Conclusão
-    if "discuss" in header_clean or "conclus" in header_clean:
+    if doc_title:
+        # Se for o título do documento, não mapeia para nenhuma seção
+        if Levenshtein.ratio(header_clean, doc_title) >= 0.85 or doc_title in header_clean or header_clean in doc_title:
+            return None
+
+    # Heurística de profundidade de numeração:
+    # Se o cabeçalho começar com uma numeração de 3 ou mais níveis (ex: 3.4.3 ou 1.2.3.4),
+    # consideramo-lo uma subseção profunda e NÃO mapeamos para uma seção canônica.
+    numbering_match = re.match(r'^([\d\.]+)', header_clean)
+    if numbering_match:
+        num_str = numbering_match.group(1).strip('.')
+        parts = [p for p in num_str.split('.') if p]
+        if len(parts) >= 3:
+            return None
+    
+    # 1. Verificações de alta prioridade para evitar conflitos (ex: "discussão dos resultados" -> discussão, não resultados)
+    if "discuss" in header_clean or "conclus" in header_clean or "considerações" in header_clean or "consideracoes" in header_clean:
         return "discussão e conclusão"
 
-    # 2. Fuzzy matching (90% similaridade)
-    # Remove números de seções (ex: "1. Introdução" -> "Introdução") para melhorar o match
+    # Heurísticas para Desenvolvimento, Materiais e Métodos -> Metodologia
+    if "desenvolvimento" in header_clean or "materiais e métodos" in header_clean or "materiais e metodos" in header_clean or "design" in header_clean or "development" in header_clean:
+        return "metodologia"
+
+    # English exact match mapping
+    english_mapping = {
+        "abstract": "resumo",
+        "introduction": "introdução",
+        "background": "referencial teórico",
+        "related work": "referencial teórico",
+        "methodology": "metodologia",
+        "results": "resultados",
+        "conclusion": "discussão e conclusão",
+        "references": "referências"
+    }
+    for eng_key, pt_val in english_mapping.items():
+        if eng_key in header_clean:
+            return pt_val
+            
+    # 2. Tentativa de busca por palavra-chave canônica
+    # Para evitar falsos positivos em títulos longos contendo palavras genéricas,
+    # exigimos que a palavra-chave corresponda apenas se o cabeçalho for curto (<= 4 palavras após remover números).
     header_only_text = re.sub(r'^[\d\.]+\s*', '', header_clean).strip()
-    
+    words_count = len(header_only_text.split())
+
+    if words_count <= 4:
+        for section_type in CANONICAL_SECTIONS:
+            # Para "referências" / "referencial teórico", fazemos busca exata de palavra
+            if section_type == "referências" and "referência" in header_clean:
+                return "referências"
+            if section_type in header_clean:
+                return section_type
+
+    # Heurísticas para Resultados, Avaliação, Experimentos, Validação -> Resultados
+    # Só mapeamos se o título contiver estas palavras E for um cabeçalho curto
+    if words_count <= 4:
+        if "resultado" in header_clean or "avaliação" in header_clean or "avaliacao" in header_clean or "experimento" in header_clean or "validação" in header_clean or "validacao" in header_clean or "teste" in header_clean:
+            if is_first_header and ("avalia" in header_clean):
+                pass
+            else:
+                return "resultados"
+        
+    # 3. Fuzzy matching (90% similaridade) no texto sem numeração
     for section_type in CANONICAL_SECTIONS:
         similarity = Levenshtein.ratio(header_only_text, section_type)
         if similarity >= threshold:
             logger.info(f"Fuzzy match detectado: '{header_only_text}' -> '{section_type}' ({similarity:.2%})")
             return section_type
 
-    # 3. Heurísticas adicionais
+    # 4. Outras heurísticas
     if "referência" in header_clean or "bibliografia" in header_clean or "trabalhos relacionados" in header_clean:
         return "referências"
     
@@ -62,6 +107,10 @@ def segmentar_secoes(markdown_text: str) -> List[Section]:
         return []
         
     logger.info("Iniciando segmentação do documento Markdown.")
+    
+    # Extrair título do documento (primeira linha não-vazia)
+    non_empty_lines = [line.strip() for line in markdown_text.split('\n') if line.strip()]
+    doc_title = normalizar_texto(non_empty_lines[0]) if non_empty_lines else ""
     
     # Extrair cabeçalhos (Níveis 1 a 3 ou texto em negrito sozinho na linha)
     header_pattern = re.compile(r'^(#{1,3})\s+(.+)$|^\*\*(.+)\*\*$', re.MULTILINE)
@@ -93,7 +142,7 @@ def segmentar_secoes(markdown_text: str) -> List[Section]:
         end_pos = matches[i+1].start() if i + 1 < len(matches) else len(markdown_text)
         
         conteudo = markdown_text[start_pos:end_pos].strip()
-        tipo_canonica = mapear_para_secao_canonica(header_text)
+        tipo_canonica = mapear_para_secao_canonica(header_text, is_first_header=(i == 0), doc_title=doc_title)
         
         if tipo_canonica:
             secao_ativa_tipo = tipo_canonica

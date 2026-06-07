@@ -42,12 +42,17 @@ Antes de gerar a sua resposta final, conduza uma auditoria interna linha por lin
 </thinking_process>
 
 <output_formatting>
-Após concluir seu <scratchpad>, apresente o diagnóstico final utilizando estritamente a seguinte estrutura em formato Markdown. Gere o maior número de blocos possível, detalhando cada falha ou oportunidade de melhoria. Para cada problema encontrado, crie um novo bloco:
+Após concluir seu <scratchpad>, apresente o diagnóstico final utilizando estritamente a seguinte estrutura em formato Markdown. Gere o maior número de blocos possível, detalhando cada falha ou oportunidade de melhoria. Para cada problema encontrado, crie um novo bloco OBRIGATORIAMENTE usando os 4 rótulos em negrito:
 
-* **Trecho:** "[Transcreva a palavra, a amostra representativa do erro, cite o número da seção ou indique a omissão estrutural exata, ex: 'Transição entre Seção 2 e 2.1']"
-    * **Problema:** [Diagnóstico técnico e objetivo da falha com base nas heurísticas (ex: adjetivo subjetivo, relato descritivo sem síntese, ausência de tamanho de amostra/métricas do estudo citado, jargão sem definição, erro de sintaxe na citação, seção órfã, falta de tabela de síntese)]
-    * **Sugestão:** [Diretriz cirúrgica de correção. Diga exatamente o que o autor deve inserir, reescrever ou formatar para sanar o problema (ex: "Substitua 'robusto' por métricas exatas", "Insira o tamanho da amostra e o framework do estudo citado", "Reestruture o parágrafo cruzando as visões dos autores", "Corrija para Silva *et al.* (2023)")]
-    * **Tipo:** [Escreva estritamente "Normativa" se o erro for de forma, estrutura visual, sintaxe de citação, matriz faltante, seção órfã ou equações incompletas OU "Semântica" se o erro for de conteúdo, lista de compras, falta de profundidade metodológica dos pares, adjetivação subjetiva ou ausência do gap de pesquisa]
+* **Trecho:** "[Transcreva a palavra, a amostra representativa do erro, cite o número da seção ou indique a omissão exata]"
+    * **Problema:** [Diagnóstico técnico e objetivo da falha com base nas heurísticas]
+    * **Sugestão:** [Diretriz cirúrgica de correção. Diga exatamente o que o autor deve inserir, reescrever ou formatar para sanar o problema]
+    * **Tipo:** [Escreva estritamente "Normativa" ou "Semântica"]
+
+**AVISO CRÍTICO DE SISTEMA:** 
+- Você é um AGENTE DE DADOS. O sistema depende dos RÓTULOS EXATOS acima.
+- NUNCA crie listas genéricas como "* **Sugestão 1:**".
+- Você DEVE usar as strings exatas "**Trecho:**", "**Problema:**", "**Sugestão:**" e "**Tipo:**" para CADA observação que fizer. Se não o fizer, a sua resposta será descartada.
 
 (Nota: É esperado que você gere múltiplos blocos. Seja exaustivo e rigoroso, não agrupando falhas distintas no mesmo marcador. Caso o texto submetido seja irrepreensível, retorne unicamente um bloco declarando "Tipo: Aprovação" e parabenizando o rigor do autor, mantendo o formato de lista).
 </output_formatting>

@@ -32,8 +32,8 @@ def router_node(state: ReviewState) -> dict:
             first_pass_routers_done += 1
             if first_pass_routers_done == first_pass_total:
                 from src.agents.router_agent import ROUTER_MODEL
-                if "gemma" in ROUTER_MODEL.lower() or "gemini" in ROUTER_MODEL.lower():
-                    logger.info("Todos os roteadores da 1ª passagem finalizaram. Aguardando 60s para evitar Rate Limit do modelo Roteador...")
+                if "gemma" in ROUTER_MODEL.lower():
+                    logger.info("Todos os roteadores da 1ª passagem finalizaram. Aguardando 60s para evitar Rate Limit do modelo Roteador (Gemma)...")
                     time.sleep(60)
                 router_barrier_event.set()
         

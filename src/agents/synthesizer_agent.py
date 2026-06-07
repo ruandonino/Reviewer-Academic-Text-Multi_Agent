@@ -32,21 +32,34 @@ Sua tarefa é consolidar as revisões parciais das diferentes seções de um tra
 {all_reviews_text}
 
 ## Estrutura Exigida para o Relatório:
-1. Visão Geral do Documento e Integração entre Seções: Analise o documento como um todo com base nas revisões. Crie observações gerais focadas na coesão, coerência e integração lógica entre as diferentes seções do texto (ex: os métodos descritos sustentam a conclusão? A introdução dialoga bem com o referencial teórico?).
-2. Revisões Detalhadas por Seção seguindo a ordem canônica das seções do documento (Título, Resumo, Introdução, etc.): Para CADA seção analisada, você DEVE listar TODOS os apontamentos gerados que sejam do tipo "semântica" ou "normativa". Para cada observação, apresente explicitamente no formato de lista:
-**RESTRIÇÃO:** As seções da revisão gerada não serem (Título, Resumo, Introdução, Referêncial Teórico, Metodologia, Resultados, Conclusão e Referências.) será considerada uma falha grave na sua tarefa.
-**RESTRIÇÃO:** **NÃO AVALIE:** Erros de digitação, erros gramaticais, erros ortográficos, uso de itálico ou formatação de fonte. Se você encontrar um erro desse tipo, IGNORE-O.
-   - Trecho (Insira a referência ou o trecho que apresenta a falha)
-   - Problema (Issue)
-   - Sugestão (Suggestion)
-   - Tipo (Normativa ou Semântica)
-**IMPORTANTE**   Não omita nenhuma observação. Apresente todas de forma organizada.
-3. Conclusão da Revisão: Finalize o relatório listando de forma clara e objetiva:
-   - Aspectos Positivos (Pontos fortes do trabalho)
-   - Problemas Principais (As falhas mais críticas que precisam de atenção)
-   - Sugestões Gerais de Melhoria (Recomendações finais para o autor)
+Você DEVE gerar o relatório contendo EXATAMENTE estes três cabeçalhos principais (Nível 2):
 
-Formate o relatório em Markdown profissional. Mantenha um tom acadêmico e construtivo. 
+## 1. Visão Geral do Documento e Integração entre Seções
+Analise o documento como um todo com base nas revisões. Crie observações gerais focadas na coesão, coerência e integração lógica entre as diferentes seções do texto.
+
+## 2. Revisões Detalhadas por Seção
+Para CADA seção analisada (Título, Resumo, Introdução, Referencial Teórico, Metodologia, Resultados, Discussão e Conclusão, Referências), você DEVE criar um cabeçalho de nível 3 no formato exato `### Seção: [NOME DA SEÇÃO]`. Abaixo de cada cabeçalho, liste TODOS os apontamentos originais dessa seção.
+Para cada observação, utilize OBRIGATORIAMENTE este formato de bloco Markdown:
+*   **Trecho:** "[Citação do texto]"
+    *   **Problema:** [Descrição da falha]
+    *   **Sugestão:** [Como corrigir]
+    *   **Tipo:** [Normativa ou Semântica]
+
+**IMPORTANTE:**
+- Não omita nenhuma seção, mesmo que não haja observações (neste caso, escreva "Nenhuma observação relevante").
+- Use EXATAMENTE os rótulos em negrito: **Trecho:**, **Problema:**, **Sugestão:** e **Tipo:**.
+- NÃO avalie erros gramaticais, ortográficos ou de formatação de fonte (itálico/negrito). Foque apenas no conteúdo técnico e estrutura acadêmica.
+
+## 3. Conclusão da Revisão
+Finalize com cabeçalhos de nível 3 para:
+### Aspectos Positivos
+[Liste os pontos fortes do trabalho]
+### Problemas Principais
+[Liste as falhas mais críticas]
+### Sugestões Gerais de Melhoria
+[Recomendações finais para o autor]
+
+Formate o relatório em Markdown profissional, garantindo que os cabeçalhos ## 1., ## 2. e ## 3. sejam os principais divisores do documento. 
 """
 
     import time

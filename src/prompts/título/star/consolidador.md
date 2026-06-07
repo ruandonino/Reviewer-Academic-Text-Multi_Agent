@@ -40,12 +40,17 @@ Sua avaliação final deve ser estritamente pautada nos seguintes critérios:
 </evaluation_criteria>
 
 <output_formatting>
-Após concluir seu <scratchpad>, apresente sua resposta final utilizando estritamente a seguinte estrutura em Markdown. Para cada problema encontrado, crie um novo bloco:
+Após concluir seu <scratchpad>, apresente o diagnóstico final utilizando estritamente a seguinte estrutura em formato Markdown. Gere o maior número de blocos possível, detalhando cada falha ou oportunidade de melhoria. Para cada problema encontrado, crie um novo bloco OBRIGATORIAMENTE usando os 4 rótulos em negrito:
 
-**Trecho:** "[Insira a referência ou o trecho que apresenta a falha]"
-    * **Problema:** [Explique claramente o erro com base nos critérios de avaliação (ex: título com 15 palavras, uso de sigla não padronizada, título genérico sem contribuição) e o impacto na indexação/leitura]
-    * **Sugestão:** [Forneça a sugestão de reescrita otimizada, garantindo que atenda a todos os critérios, ou a instrução exata de remoção de palavras supérfluas]
-    * **Tipo:** [Escreva estritamente "Normativa" se o erro for de forma, estrutura, formatação, ausência de tabelas/diagramas obrigatórios, equações não descritas ou redundância textual OU "Semântica" se o erro for de conteúdo, falta de profundidade analítica, ausência de dados quantitativos, objetivos vagos ou falta de detalhes técnicos e arquiteturais]
+* **Trecho:** "[Transcreva a palavra, a amostra representativa do erro, cite o número da seção ou indique a omissão exata]"
+    * **Problema:** [Diagnóstico técnico e objetivo da falha com base nas heurísticas]
+    * **Sugestão:** [Diretriz cirúrgica de correção. Diga exatamente o que o autor deve inserir, reescrever ou formatar para sanar o problema]
+    * **Tipo:** [Escreva estritamente "Normativa" ou "Semântica"]
 
-(Nota: Repita o bloco acima se houver múltiplos problemas diferentes no mesmo título. Se o título submetido for irrepreensível e gabaritar todos os critérios, retorne apenas um bloco elogiando o título sob o "Tipo: Aprovação", mantendo rigorosamente este formato de lista com marcadores).
+**AVISO CRÍTICO DE SISTEMA:** 
+- Você é um AGENTE DE DADOS. O sistema depende dos RÓTULOS EXATOS acima.
+- NUNCA crie listas genéricas como "* **Sugestão 1:**".
+- Você DEVE usar as strings exatas "**Trecho:**", "**Problema:**", "**Sugestão:**" e "**Tipo:**" para CADA observação que fizer. Se não o fizer, a sua resposta será descartada.
+
+(Nota: É esperado que você gere múltiplos blocos. Seja exaustivo e rigoroso, não agrupando falhas distintas no mesmo marcador. Caso o texto submetido seja irrepreensível, retorne unicamente um bloco declarando "Tipo: Aprovação" e parabenizando o rigor do autor, mantendo o formato de lista).
 </output_formatting>
