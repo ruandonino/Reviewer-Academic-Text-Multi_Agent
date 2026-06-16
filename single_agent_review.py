@@ -26,18 +26,33 @@ def review_entire_pdf(pdf_path: str, model_name: str = "gemini/gemini-2.5-flash-
     start_time = time.time()
     logger.info(f"Iniciando revisão de agente único para o arquivo: {pdf_path} com modelo: {model_name}")
     
+    md_text = None
     if not os.path.exists(pdf_path):
-        logger.error(f"Arquivo {pdf_path} não encontrado.")
-        return
+        base_name = os.path.basename(pdf_path)
+        name_without_ext = os.path.splitext(base_name)[0]
+        cached_md = None
+        for parser in ["mineru", "docling", "markitdown"]:
+            candidate = os.path.join("output_md", f"{name_without_ext}_{parser}.md")
+            if os.path.exists(candidate):
+                cached_md = candidate
+                break
         
-    logger.info("Extraindo texto do PDF...")
-    md_text = convert_pdf_to_markdown(pdf_path)
-    
+        if cached_md:
+            logger.info(f"PDF {pdf_path} não encontrado, mas arquivo markdown cache encontrado em {cached_md}. Usando cache.")
+            with open(cached_md, "r", encoding="utf-8") as f:
+                md_text = f.read()
+        else:
+            logger.error(f"Arquivo {pdf_path} não encontrado e nenhum cache em output_md/ foi localizado.")
+            return
+    else:
+        logger.info("Extraindo texto do PDF...")
+        md_text = convert_pdf_to_markdown(pdf_path)
+        
     if not md_text:
-        logger.error("Falha ao extrair texto do documento.")
+        logger.error("Falha ao obter texto do documento.")
         return
         
-    logger.info(f"Texto extraído com sucesso. Tamanho: {len(md_text)} caracteres.")
+    logger.info(f"Texto obtido com sucesso. Tamanho: {len(md_text)} caracteres.")
     
     # Segmenta as seções apenas para preencher o JSON formatado no final (o prompt recebe o texto inteiro)
     secoes = segmentar_secoes(md_text)
@@ -46,6 +61,7 @@ def review_entire_pdf(pdf_path: str, model_name: str = "gemini/gemini-2.5-flash-
 Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do trabalho acadêmico abaixo e fornecer uma revisão detalhada, crítica e estruturada.
 
 ## REGRAS DE OURO (LEIA ANTES DE COMEÇAR):
+**RESTRIÇÃO:** NÃO aponte, mencione ou corrija erros de digitação, ortografia, acentuação, concordância ou gramática. O foco é estritamente no conteúdo.
 **RESTRIÇÃO:** As seções da revisão gerada não serem (Título, Resumo, Introdução, Referêncial Teórico, Metodologia, Resultados, Conclusão e Referências.) será considerada uma falha grave na sua tarefa.
 
 ## Diretrizes da Revisão:
@@ -151,6 +167,8 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
             "referêncial teórico": "revisao_bibliografica",
             "referencial teórico": "revisao_bibliografica",
             "revisão da literatura": "revisao_bibliografica",
+            "revisão bibliográfica": "revisao_bibliografica",
+            "revisao bibliografica": "revisao_bibliografica",
             "background": "revisao_bibliografica",
             "related work": "revisao_bibliografica",
             "metodologia": "metodologia",
@@ -184,7 +202,7 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
         section_2_match = re.search(r'(?:##\s*(?:2\.\s*)?Revisões Detalhadas por Seção|###\s*Seção:\s*T[ÍI]TULO)(.*?)(?:##\s*(?:3\.\s*)?Conclusão da Revisão|###\s*Aspectos Positivos|$)', review_content, re.DOTALL | re.IGNORECASE)
         if section_2_match:
             section_2_text = review_content[section_2_match.start():section_2_match.end()]
-            parts = re.split(r'\n(?:####|###)\s+', section_2_text)
+            parts = re.split(r'\n(?:####|###|##)\s+', section_2_text)
             for part in parts:
                 if not part.strip():
                     continue

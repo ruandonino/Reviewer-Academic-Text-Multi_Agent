@@ -83,8 +83,22 @@ async def main():
     
     # Fallback to a mock text if file doesn't exist for demo purposes
     if not os.path.exists(pdf_path):
-        logger.warning(f"Arquivo {pdf_path} não encontrado. Usando texto de demonstração.")
-        md_text = """
+        base_name = os.path.basename(pdf_path)
+        name_without_ext = os.path.splitext(base_name)[0]
+        cached_md = None
+        for parser in ["mineru", "docling", "markitdown"]:
+            candidate = os.path.join("output_md", f"{name_without_ext}_{parser}.md")
+            if os.path.exists(candidate):
+                cached_md = candidate
+                break
+        
+        if cached_md:
+            logger.info(f"PDF {pdf_path} não encontrado, mas arquivo markdown cache encontrado em {cached_md}. Usando cache.")
+            with open(cached_md, "r", encoding="utf-8") as f:
+                md_text = f.read()
+        else:
+            logger.warning(f"Arquivo {pdf_path} não encontrado e nenhum cache em output_md/ foi localizado. Usando texto de demonstração.")
+            md_text = """
 # Introdução
 Este é um trabalho sobre sistemas multiagentes. O objetivo é criar um framework escalável.
         
@@ -243,6 +257,8 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
         "referêncial teórico": "revisao_bibliografica",
         "referencial teórico": "revisao_bibliografica",
         "revisão da literatura": "revisao_bibliografica",
+        "revisão bibliográfica": "revisao_bibliografica",
+        "revisao bibliografica": "revisao_bibliografica",
         "background": "revisao_bibliografica",
         "related work": "revisao_bibliografica",
         "metodologia": "metodologia",

@@ -125,7 +125,7 @@ def test_feedback_mechanism(mock_comp, mock_sum, mock_eval, mock_exec, mock_rout
     class MockResp: choices = [MockChoice()]
     mock_comp.return_value = MockResp()
     
-    final_report = synthesize_final_report([best_review])
+    final_report, _, _ = synthesize_final_report([(Section(type="introdução", position=1, text="Texto"), best_review)])
     logger.info(f"Relatório Gerado:\n{final_report}")
 
     logger.info("\n=== Teste do Mecanismo de Feedback Concluído ===")

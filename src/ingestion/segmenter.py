@@ -7,8 +7,7 @@ logger = get_logger()
 
 # Mapa de seções canônicas de acordo com o padrão estabelecido (C no Algoritmo 2)
 CANONICAL_SECTIONS = [
-    "título", "resumo", "introdução", "referencial teórico", 
-    "revisão da literatura", "metodologia", 
+    "título", "resumo", "introdução", "revisão bibliográfica", "metodologia", 
     "resultados", "discussão e conclusão", "referências"
 ]
 
@@ -40,19 +39,30 @@ def mapear_para_secao_canonica(header: str, threshold: float = 0.8, is_first_hea
             return None
     
     # 1. Verificações de alta prioridade para evitar conflitos (ex: "discussão dos resultados" -> discussão, não resultados)
+    # "Considerações iniciais" é uma seção introdutória, NÃO uma conclusão — excluída explicitamente.
+    if "considerações iniciais" in header_clean or "consideracoes iniciais" in header_clean:
+        return None
     if "discuss" in header_clean or "conclus" in header_clean or "considerações" in header_clean or "consideracoes" in header_clean:
+        if "discussão dos resultados" in header_clean:
+            return "resultados"
         return "discussão e conclusão"
 
     # Heurísticas para Desenvolvimento, Materiais e Métodos -> Metodologia
-    if "desenvolvimento" in header_clean or "materiais e métodos" in header_clean or "materiais e metodos" in header_clean or "design" in header_clean or "development" in header_clean:
+    if ("desenvolvimento" in header_clean or "materiais e métodos" in header_clean or
+            "materiais e metodos" in header_clean or "design" in header_clean or
+            "development" in header_clean or
+            "estratégias de desenvolvimento" in header_clean or
+            "estrategias de desenvolvimento" in header_clean or
+            ("materiais" in header_clean and "métodos" in header_clean) or
+            ("materiais" in header_clean and "metodos" in header_clean)):
         return "metodologia"
 
     # English exact match mapping
     english_mapping = {
         "abstract": "resumo",
         "introduction": "introdução",
-        "background": "referencial teórico",
-        "related work": "referencial teórico",
+        "background": "revisão bibliográfica",
+        "related work": "revisão bibliográfica",
         "methodology": "metodologia",
         "results": "resultados",
         "conclusion": "discussão e conclusão",
@@ -69,8 +79,15 @@ def mapear_para_secao_canonica(header: str, threshold: float = 0.8, is_first_hea
     words_count = len(header_only_text.split())
 
     if words_count <= 4:
+        # Busca exata para variações de revisão bibliográfica / referencial teórico
+        if "referencial teórico" in header_clean or "referencial teorico" in header_clean or \
+           "revisão da literatura" in header_clean or "revisao da literatura" in header_clean or \
+           "revisão bibliográfica" in header_clean or "revisao bibliografica" in header_clean or \
+           "fundamentação teórica" in header_clean or "fundamentacao teorica" in header_clean:
+            return "revisão bibliográfica"
+            
         for section_type in CANONICAL_SECTIONS:
-            # Para "referências" / "referencial teórico", fazemos busca exata de palavra
+            # Para "referências", fazemos busca exata de palavra
             if section_type == "referências" and "referência" in header_clean:
                 return "referências"
             if section_type in header_clean:
@@ -93,7 +110,9 @@ def mapear_para_secao_canonica(header: str, threshold: float = 0.8, is_first_hea
             return section_type
 
     # 4. Outras heurísticas
-    if "referência" in header_clean or "bibliografia" in header_clean or "trabalhos relacionados" in header_clean:
+    if "trabalhos relacionados" in header_clean:
+        return "revisão bibliográfica"
+    if "referência" in header_clean or "bibliografia" in header_clean:
         return "referências"
     
     return None
@@ -132,10 +151,27 @@ def segmentar_secoes(markdown_text: str) -> List[Section]:
         return secoes
 
     secao_ativa_tipo = "título" if (matches and matches[0].start() > 0) else None
+    secao_ativa_nivel = 0      # markdown heading level (# count) of the active canonical section
+    secao_ativa_num_depth = 0  # numeric prefix depth of the active canonical section
+    secao_ativa_root = None    # first integer of the numeric prefix (e.g. "4.7" -> "4")
+
+    def _num_info(header_raw: str):
+        """Return (depth, root) where depth = number of numeric parts, root = first part (str) or None."""
+        clean = normalizar_texto(re.sub(r'^#+\s*', '', header_raw))
+        m = re.match(r'^([\d\.]+)', clean)
+        if m:
+            parts = [p for p in m.group(1).strip('.').split('.') if p]
+            return len(parts), parts[0] if parts else None
+        return 0, None
 
     for i, match in enumerate(matches):
-        # match.group(2) é o texto do heading #, match.group(3) é o texto do negrito **
+        # match.group(1) = '#' chars, match.group(2) = heading text, match.group(3) = **bold** text
         header_text = match.group(2) if match.group(2) else match.group(3)
+
+        # Determine heading depth (bold text treated as deepest sub-level)
+        nivel_atual = len(match.group(1)) if match.group(1) else 4
+        num_depth_atual, num_root_atual = _num_info(header_text)
+
         start_pos = match.start()
         
         # O fim do conteúdo é o início do próximo cabeçalho ou o fim do arquivo
@@ -143,9 +179,50 @@ def segmentar_secoes(markdown_text: str) -> List[Section]:
         
         conteudo = markdown_text[start_pos:end_pos].strip()
         tipo_canonica = mapear_para_secao_canonica(header_text, is_first_header=(i == 0), doc_title=doc_title)
-        
+
+        # ── Subsection guard ────────────────────────────────────────────────
+        # Brazilian TCC documents often use ## for EVERY heading, so markdown
+        # level comparison alone is insufficient.  We use two complementary
+        # heuristics:
+        #
+        # 1. deeper_by_level: the heading has more # chars than the one that
+        #    opened the current canonical section.
+        #
+        # 2. same_chapter_root: the heading shares the SAME first integer as
+        #    the one that opened the current canonical section, AND has a deeper
+        #    numeric prefix.  Example:
+        #      Active: "4 DESENVOLVIMENTO"  root="4" depth=1
+        #      Incoming: "4.7 Considerações Finais"  root="4" depth=2
+        #    → same root "4", deeper depth → it is a SUBSECTION of chapter 4,
+        #      not a new canonical section.
+        #
+        # Note: a heading with a DIFFERENT root (e.g. "6 CONCLUSÕES", root="6")
+        # is always treated as a potential new canonical section.
+        if tipo_canonica and secao_ativa_nivel > 0 and secao_ativa_tipo != "título":
+            deeper_by_level = nivel_atual > secao_ativa_nivel
+
+            same_chapter_root = (
+                num_root_atual is not None and
+                secao_ativa_root is not None and
+                num_root_atual == secao_ativa_root and
+                num_depth_atual >= 2 and
+                nivel_atual >= secao_ativa_nivel
+            )
+
+            if deeper_by_level or same_chapter_root:
+                logger.debug(
+                    f"Subseção '{header_text}' (nível={nivel_atual}, depth={num_depth_atual}, root={num_root_atual}) "
+                    f"ignorada como canônica — seção ativa '{secao_ativa_tipo}' "
+                    f"(nível={secao_ativa_nivel}, depth={secao_ativa_num_depth}, root={secao_ativa_root})."
+                )
+                tipo_canonica = None
+        # ────────────────────────────────────────────────────────────────────
+
         if tipo_canonica:
             secao_ativa_tipo = tipo_canonica
+            secao_ativa_nivel = nivel_atual
+            secao_ativa_num_depth = num_depth_atual
+            secao_ativa_root = num_root_atual
             existing_section = next((s for s in secoes if s.type == tipo_canonica), None)
             if existing_section:
                 existing_section.text += "\n\n" + conteudo
@@ -170,6 +247,9 @@ def segmentar_secoes(markdown_text: str) -> List[Section]:
                 s_fallback = Section(type="título", text=conteudo, position=len(secoes) + 1)
                 secoes.append(s_fallback)
                 secao_ativa_tipo = "título"
+                secao_ativa_nivel = nivel_atual
+                secao_ativa_num_depth = num_depth_atual
+                secao_ativa_root = num_root_atual
                 logger.debug(f"Subseção sem pai '{header_text}' criada como fallback 'título'.")
             
     logger.info(f"Segmentação concluída. {len(secoes)} seções canônicas extraídas.")

@@ -74,7 +74,7 @@ acurácia das respostas e mitigando o fenômeno de alucinação frequentemente o
     logger.info("Chamando summarize_and_index...")
     start_time = time.time()
     
-    record = summarize_and_index(
+    record, _, _ = summarize_and_index(
         section=target_section,
         review=approved_review,
         decision=router_decision,
@@ -95,7 +95,7 @@ acurácia das respostas e mitigando o fenômeno de alucinação frequentemente o
     logger.info("--- TESTANDO A RECUPERAÇÃO (RAG) DO NOVO REGISTRO ---")
     logger.info("Consultando o banco vetorial para o texto recém-inserido...")
     
-    history_retrieved = vector_db.retrieve_context(target_section.text, target_section.type, k=1)
+    history_retrieved, _, _ = vector_db.retrieve_context(target_section.text, target_section.type, k=1)
     
     if history_retrieved:
         found_meta = history_retrieved[0].get("metadata", {})

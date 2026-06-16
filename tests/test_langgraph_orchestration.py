@@ -50,10 +50,11 @@ class TestLangGraphOrchestration(unittest.TestCase):
         logger.info("\n--- TESTANDO CAMINHO FELIZ (Aprovado na 1ª tentativa) ---")
         
         # Configura os mocks
-        mock_route.return_value = (self.mock_decision, [])
-        mock_exec.return_value = self.mock_review
+        mock_route.return_value = (self.mock_decision, [], 0, 0.0)
+        mock_exec.return_value = (self.mock_review, 0, 0.0)
         # Retorna aprovação na primeira chamada
-        mock_eval.return_value = EvaluationScore(score=90.0, approved=True)
+        mock_eval.return_value = (EvaluationScore(score=90.0, approved=True), 0, 0.0)
+        mock_sum.return_value = (None, 0, 0.0)
         
         # Executa o grafo
         final_state = self.app_graph.invoke(self.initial_state)
@@ -78,13 +79,14 @@ class TestLangGraphOrchestration(unittest.TestCase):
         logger.info("\n--- TESTANDO FEEDBACK LOOP (Aprovado na 2ª tentativa) ---")
         
         # Configura os mocks
-        mock_route.return_value = (self.mock_decision, [])
-        mock_exec.return_value = self.mock_review
+        mock_route.return_value = (self.mock_decision, [], 0, 0.0)
+        mock_exec.return_value = (self.mock_review, 0, 0.0)
+        mock_sum.return_value = (None, 0, 0.0)
         
         # Primeira chamada reprova, segunda aprova
         mock_eval.side_effect = [
-            EvaluationScore(score=50.0, approved=False),
-            EvaluationScore(score=85.0, approved=True)
+            (EvaluationScore(score=50.0, approved=False), 0, 0.0),
+            (EvaluationScore(score=85.0, approved=True), 0, 0.0)
         ]
         
         # Executa o grafo
@@ -111,17 +113,18 @@ class TestLangGraphOrchestration(unittest.TestCase):
         logger.info(f"\n--- TESTANDO LIMITE DE TENTATIVAS ({settings.max_attempts}x reprovações) ---")
         
         # Configura os mocks
-        mock_route.return_value = (self.mock_decision, [])
-        mock_exec.return_value = self.mock_review
+        mock_route.return_value = (self.mock_decision, [], 0, 0.0)
+        mock_exec.return_value = (self.mock_review, 0, 0.0)
+        mock_sum.return_value = (None, 0, 0.0)
         
         # Todas as chamadas reprovam. Vamos simular notas diferentes para ver se ele guarda a melhor.
         # Tentativa 1: nota 60
         # Tentativa 2: nota 75 (Melhor tentativa!)
         # Tentativa 3: nota 50
         mock_eval.side_effect = [
-            EvaluationScore(score=60.0, approved=False),
-            EvaluationScore(score=75.0, approved=False),
-            EvaluationScore(score=50.0, approved=False)
+            (EvaluationScore(score=60.0, approved=False), 0, 0.0),
+            (EvaluationScore(score=75.0, approved=False), 0, 0.0),
+            (EvaluationScore(score=50.0, approved=False), 0, 0.0)
         ]
         
         # Executa o grafo

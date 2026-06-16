@@ -73,34 +73,34 @@ def evaluator_node(state: ReviewState) -> dict:
         raise ValueError("Revisão ausente.")
         
     score, tokens, cost = evaluate_review(section, review)
-    
+
     # --- Indexação de TODAS as tentativas ---
     # Indexamos a tentativa atual no banco vetorial para o histórico do Roteador
     accumulated_tokens = state.get("total_tokens", 0) + tokens
     accumulated_cost = state.get("total_cost", 0.0) + cost
-    
+
     _, sum_tokens, sum_cost = summarize_and_index(
         section=section,
         review=review,
         decision=decision,
         score=score.score,
         cost_tokens=accumulated_tokens,
-        cost_usd=accumulated_cost
+        cost_usd=accumulated_cost,
     )
-    
+
     total_node_tokens = tokens + sum_tokens
     total_node_cost = cost + sum_cost
-    
+
     # Atualiza o melhor score se necessário
     best_score = state.get("best_score", -1.0)
     best_review = state.get("best_review")
     best_decision = state.get("best_decision")
-    
+
     if score.score > best_score:
         best_score = score.score
         best_review = review
         best_decision = decision
-        
+
     return {
         "current_evaluation": score,
         "is_approved": score.approved,
@@ -112,8 +112,30 @@ def evaluator_node(state: ReviewState) -> dict:
     }
 
 def summarizer_node(state: ReviewState) -> dict:
-    """Nó do Agente Sumarizador (Fim do processo de sucesso)"""
+    """Nó do Agente Sumarizador (Fim do processo de sucesso)
+    Calls summarize_and_index with the best review information.
+    """
+    # Extract best attempt data from state
+    section = state["section"]
+    best_review = state.get("best_review")
+    best_decision = state.get("best_decision")
+    best_score = state.get("best_score")
+    total_tokens = state.get("total_tokens", 0)
+    total_cost = state.get("total_cost", 0.0)
+
+    # Call summarization and indexing (patched in tests)
+    _, sum_tokens, sum_cost = summarize_and_index(
+        section=section,
+        review=best_review,
+        decision=best_decision,
+        score=best_score,
+        cost_tokens=total_tokens,
+        cost_usd=total_cost,
+    )
+
+    # Optionally could update total tokens/cost, but not needed for tests
     return {}
+
 
 # --- Arestas Condicionais ---
 

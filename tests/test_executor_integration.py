@@ -46,7 +46,7 @@ def test_executor_architectures():
         system_prompt=sys_prompt
     )
     start = time.time()
-    res_single = execute_architecture(decision_single, target_section)
+    res_single, _, _ = execute_architecture(decision_single, target_section)
     logger.info(f"Tempo: {time.time() - start:.2f}s")
     logger.info(f"Comentários: {res_single.general_comments}")
     logger.info(f"Observações geradas: {len(res_single.observations)}")
@@ -64,7 +64,7 @@ def test_executor_architectures():
         system_prompt=sys_prompt
     )
     start = time.time()
-    res_star = execute_architecture(decision_star, target_section)
+    res_star, _, _ = execute_architecture(decision_star, target_section)
     logger.info(f"Tempo: {time.time() - start:.2f}s")
     logger.info(f"Comentários: {res_star.general_comments}")
     logger.info(f"Observações geradas: {len(res_star.observations)}")
@@ -81,7 +81,7 @@ def test_executor_architectures():
         system_prompt=sys_prompt
     )
     start = time.time()
-    res_chain = execute_architecture(decision_chain, target_section)
+    res_chain, _, _ = execute_architecture(decision_chain, target_section)
     logger.info(f"Tempo: {time.time() - start:.2f}s")
     logger.info(f"Comentários: {res_chain.general_comments}")
     logger.info(f"Observações geradas: {len(res_chain.observations)}")
@@ -99,7 +99,7 @@ def test_executor_architectures():
         system_prompt=sys_prompt
     )
     start = time.time()
-    res_debate = execute_architecture(decision_debate, target_section)
+    res_debate, _, _ = execute_architecture(decision_debate, target_section)
     logger.info(f"Tempo: {time.time() - start:.2f}s")
     logger.info(f"Comentários: {res_debate.general_comments}")
     logger.info(f"Observações geradas: {len(res_debate.observations)}")
@@ -117,7 +117,7 @@ def test_executor_architectures():
         system_prompt=sys_prompt
     )
     start = time.time()
-    res_ensemble = execute_architecture(decision_ensemble, target_section)
+    res_ensemble, _, _ = execute_architecture(decision_ensemble, target_section)
     logger.info(f"Tempo: {time.time() - start:.2f}s")
     logger.info(f"Comentários: {res_ensemble.general_comments}")
     logger.info(f"Observações geradas: {len(res_ensemble.observations)}")

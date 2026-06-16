@@ -65,7 +65,7 @@ def load_agent_prompt(agent_name: str, router_instructions: str, section_type: s
     
     # Normaliza nomes para pastas
     safe_section = section_type.lower().replace(" ", "_")
-    if safe_section in ["revisão_da_literatura", "background", "related_work"]:
+    if safe_section in ["revisão_da_literatura", "revisão_bibliográfica", "revisao_bibliografica", "background", "related_work"]:
         safe_section = "referencial_teórico"
     safe_arch = architecture.lower()
     

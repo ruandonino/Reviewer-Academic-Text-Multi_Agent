@@ -49,7 +49,7 @@ class TestRouterHistoricalRouting(unittest.TestCase):
         Esperado: O roteador deve escolher a arquitetura 'Single' e um modelo barato para economizar.
         """
         logger.info("\n--- TESTE 1: Texto Simples + Sucesso Barato no Histórico ---")
-        mock_retrieve.return_value = self.create_mock_history("Single", 95.0, 0.001)
+        mock_retrieve.return_value = (self.create_mock_history("Single", 95.0, 0.001), 0, 0.0)
         
         section = Section(
             type="introdução",
@@ -74,7 +74,7 @@ class TestRouterHistoricalRouting(unittest.TestCase):
         Esperado: Roteador deve escolher a arquitetura 'Debate'.
         """
         logger.info("\n--- TESTE 2: Texto Complexo + Falha no Single + Sucesso no Debate ---")
-        mock_retrieve.return_value = [
+        mock_retrieve.return_value = ([
             {
                 "metadata": {
                     "evaluation_score": 50.0,
@@ -93,7 +93,7 @@ class TestRouterHistoricalRouting(unittest.TestCase):
                     "text_summary": "Debate conseguiu aprofundar na complexidade metodológica."
                 }
             }
-        ]
+        ], 0, 0.0)
         
         section = Section(
             type="metodologia",
@@ -118,7 +118,7 @@ class TestRouterHistoricalRouting(unittest.TestCase):
         Esperado: Roteador deve escolher 'Star'.
         """
         logger.info("\n--- TESTE 3: Regras Rigorosas + Sucesso na Arquitetura Star ---")
-        mock_retrieve.return_value = self.create_mock_history("Star", 98.0, 0.015, "gemini/gemma-4-31b-it")
+        mock_retrieve.return_value = (self.create_mock_history("Star", 98.0, 0.015, "gemini/gemma-4-31b-it"), 0, 0.0)
         
         section = Section(
             type="referências",
@@ -143,11 +143,11 @@ class TestRouterHistoricalRouting(unittest.TestCase):
         Esperado: Roteador escolhe 'Ensemble' com modelos capazes.
         """
         logger.info("\n--- TESTE 4: Alta Complexidade + Ensemble como única solução ---")
-        mock_retrieve.return_value = [
+        mock_retrieve.return_value = ([
             {"metadata": {"evaluation_score": 55.0, "architecture_used": "Single", "cost_usd": 0.003}},
             {"metadata": {"evaluation_score": 60.0, "architecture_used": "Chain", "cost_usd": 0.009}},
             {"metadata": {"evaluation_score": 96.0, "architecture_used": "Ensemble", "cost_usd": 0.05, "models_used": "gpt-4o,claude-3-5-sonnet-20241022"}}
-        ]
+        ], 0, 0.0)
         
         section = Section(
             type="discussão_e_conclusão",

@@ -1,5 +1,11 @@
 <heuristics>
 
+**REGRA OBRIGATÓRIA - IGNORAR ERROS ORTOGRÁFICOS E DE OCR:**
+1. **Erros Ortográficos e Gramaticais:** NÃO aponte, mencione ou corrija erros de digitação, ortografia, acentuação, concordância ou gramática. O foco é estritamente no conteúdo.
+2. **Erros de OCR/Conversão:** O texto foi extraído de PDF e contém falhas de conversão de caracteres e formatação (ex: 'criangas' por crianças, palavras emendadas, hifens perdidos). É TERMINANTEMENTE PROIBIDO apontar, citar ou usar essas palavras corrompidas e erros de formatação/OCR nas suas observações ou como críticas de coesão e fluidez.
+O foco deve ser apenas no rigor científico, lógica e estrutura acadêmica.
+
+
 ATENÇÃO ESPECIAL: O texto submetido foi extraído de um PDF e contém graves falhas de conversão (ex: 'criangas' no lugar de crianças, 'nogões' no lugar de noções, 'construgao' no lugar de construção). É TERMINANTEMENTE PROIBIDO mencionar, corrigir ou usar essas palavras corrompidas como justificativa para apontar falhas de coesão, fluidez ou semântica. Ignore completamente a corrupção visual das palavras e avalie estritamente a arquitetura do argumento.
 
 

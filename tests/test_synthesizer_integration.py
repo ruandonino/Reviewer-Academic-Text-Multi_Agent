@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 load_dotenv()
 logger = get_logger()
 
+from src.models.section import Section
+
 def test_synthesizer_integration():
     if not os.getenv("GEMINI_API_KEY"):
         logger.error("GEMINI_API_KEY não encontrada. O teste do Sintetizador usando Gemini será cancelado.")
@@ -70,14 +72,18 @@ def test_synthesizer_integration():
         ]
     )
 
-    # Lista de revisões parciais
-    reviews_list = [review_intro, review_method, review_conclusion]
+    # Lista de revisões parciais com seções correspondentes
+    reviews_list = [
+        (Section(type="introdução", position=1, text="Texto introdução"), review_intro),
+        (Section(type="metodologia", position=2, text="Texto metodologia"), review_method),
+        (Section(type="conclusão", position=3, text="Texto conclusão"), review_conclusion)
+    ]
 
     logger.info("Invocando synthesize_final_report...")
     start_time = time.time()
     
     # Executando a etapa 8 real
-    final_report = synthesize_final_report(reviews_list)
+    final_report, _, _ = synthesize_final_report(reviews_list)
     
     end_time = time.time()
 
