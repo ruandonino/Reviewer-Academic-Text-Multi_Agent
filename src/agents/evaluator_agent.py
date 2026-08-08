@@ -1,7 +1,7 @@
 import json
 import re
 from typing import Tuple
-from src.utils.llm_client import safe_completion as completion
+from src.utils.llm_client import calculate_completion_cost, safe_completion as completion
 from src.models.section import Section
 from src.models.review import ReviewResult, EvaluationScore
 from src.config import settings
@@ -94,11 +94,10 @@ Retorne APENAS um número de 0 a 100 representando a nota da revisão, sem nenhu
         content = response.choices[0].message.content.strip()
         
         tokens = response.usage.total_tokens if hasattr(response, 'usage') and response.usage else 0
-        from litellm import completion_cost
         try:
-            cost = completion_cost(completion_response=response)
-        except Exception:
-            logger.warning(f"Não foi possível calcular o custo do Avaliador para o modelo {EVALUATOR_MODEL}")
+            cost = calculate_completion_cost(response, EVALUATOR_MODEL)
+        except Exception as cost_error:
+            logger.warning(f"Não foi possível calcular o custo do Avaliador para o modelo {EVALUATOR_MODEL}: {cost_error}")
             cost = 0.0
             
         # Extrai apenas o número da resposta para evitar erros se o modelo retornar texto junto

@@ -42,9 +42,17 @@ def mapear_para_secao_canonica(header: str, threshold: float = 0.8, is_first_hea
     # "Considerações iniciais" é uma seção introdutória, NÃO uma conclusão — excluída explicitamente.
     if "considerações iniciais" in header_clean or "consideracoes iniciais" in header_clean:
         return None
+
+    # A heading such as "Resultados e Discussão" begins the results section;
+    # its discussion component must not merge it with the later conclusion.
+    if "resultado" in header_clean and "conclus" not in header_clean:
+        return "resultados"
+
     if "discuss" in header_clean or "conclus" in header_clean or "considerações" in header_clean or "consideracoes" in header_clean:
         if "discussão dos resultados" in header_clean:
             return "resultados"
+        if "considerações" in header_clean or "consideracoes" in header_clean:
+            return "considerações finais"
         return "discussão e conclusão"
 
     # Heurísticas para Desenvolvimento, Materiais e Métodos -> Metodologia
@@ -198,7 +206,7 @@ def segmentar_secoes(markdown_text: str) -> List[Section]:
         #
         # Note: a heading with a DIFFERENT root (e.g. "6 CONCLUSÕES", root="6")
         # is always treated as a potential new canonical section.
-        if tipo_canonica and secao_ativa_nivel > 0 and secao_ativa_tipo != "título":
+        if tipo_canonica and secao_ativa_nivel > 0 and secao_ativa_tipo != "título" and tipo_canonica != "considerações finais":
             deeper_by_level = nivel_atual > secao_ativa_nivel
 
             same_chapter_root = (

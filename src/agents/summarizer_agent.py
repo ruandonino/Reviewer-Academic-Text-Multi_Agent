@@ -1,5 +1,5 @@
 import uuid
-from src.utils.llm_client import safe_completion as completion
+from src.utils.llm_client import calculate_completion_cost, safe_completion as completion
 from src.models.section import Section
 from src.models.router import RouterDecision
 from src.models.review import ReviewResult
@@ -9,7 +9,7 @@ from src.utils.logger import get_logger
 
 logger = get_logger()
 
-SUMMARIZER_MODEL = "gemini/gemini-2.5-flash-lite"
+SUMMARIZER_MODEL = "openrouter/deepseek-v4-flash"
 
 def summarize_and_index(
     section: Section, 
@@ -40,11 +40,10 @@ Texto Original:
         text_summary = response.choices[0].message.content.strip()
 
         tokens = response.usage.total_tokens if hasattr(response, 'usage') and response.usage else 0
-        from litellm import completion_cost
         try:
-            cost = completion_cost(completion_response=response)
-        except Exception:
-            logger.warning(f"Não foi possível calcular o custo do Sumarizador para o modelo {SUMMARIZER_MODEL}")
+            cost = calculate_completion_cost(response, SUMMARIZER_MODEL)
+        except Exception as cost_error:
+            logger.warning(f"Não foi possível calcular o custo do Sumarizador para o modelo {SUMMARIZER_MODEL}: {cost_error}")
             cost = 0.0
 
         cost_tokens += tokens

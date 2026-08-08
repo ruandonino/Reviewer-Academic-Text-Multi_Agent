@@ -11,9 +11,10 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from src.ingestion.parsers import convert_pdf_to_markdown
 from src.ingestion.segmenter import segmentar_secoes
-from src.utils.llm_client import safe_completion
+from src.utils.llm_client import calculate_completion_cost, safe_completion
 from src.config import settings
 from src.utils.logger import get_logger
+from src.utils.section_mapping import resolve_section_key
 
 load_dotenv(override=True)
 logger = get_logger()
@@ -26,33 +27,18 @@ def review_entire_pdf(pdf_path: str, model_name: str = "gemini/gemini-2.5-flash-
     start_time = time.time()
     logger.info(f"Iniciando revisão de agente único para o arquivo: {pdf_path} com modelo: {model_name}")
     
-    md_text = None
     if not os.path.exists(pdf_path):
-        base_name = os.path.basename(pdf_path)
-        name_without_ext = os.path.splitext(base_name)[0]
-        cached_md = None
-        for parser in ["mineru", "docling", "markitdown"]:
-            candidate = os.path.join("output_md", f"{name_without_ext}_{parser}.md")
-            if os.path.exists(candidate):
-                cached_md = candidate
-                break
-        
-        if cached_md:
-            logger.info(f"PDF {pdf_path} não encontrado, mas arquivo markdown cache encontrado em {cached_md}. Usando cache.")
-            with open(cached_md, "r", encoding="utf-8") as f:
-                md_text = f.read()
-        else:
-            logger.error(f"Arquivo {pdf_path} não encontrado e nenhum cache em output_md/ foi localizado.")
-            return
-    else:
-        logger.info("Extraindo texto do PDF...")
-        md_text = convert_pdf_to_markdown(pdf_path)
-        
-    if not md_text:
-        logger.error("Falha ao obter texto do documento.")
+        logger.error(f"Arquivo {pdf_path} não encontrado.")
         return
         
-    logger.info(f"Texto obtido com sucesso. Tamanho: {len(md_text)} caracteres.")
+    logger.info("Extraindo texto do PDF...")
+    md_text = convert_pdf_to_markdown(pdf_path)
+    
+    if not md_text:
+        logger.error("Falha ao extrair texto do documento.")
+        return
+        
+    logger.info(f"Texto extraído com sucesso. Tamanho: {len(md_text)} caracteres.")
     
     # Segmenta as seções apenas para preencher o JSON formatado no final (o prompt recebe o texto inteiro)
     secoes = segmentar_secoes(md_text)
@@ -103,9 +89,8 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
         
         # Opcional: extrair custo
         tokens = response.usage.total_tokens if hasattr(response, 'usage') and response.usage else 0
-        from litellm import completion_cost
         try:
-            cost = completion_cost(completion_response=response)
+            cost = calculate_completion_cost(response, model_name)
         except Exception:
             cost = 0.0
             
@@ -114,9 +99,10 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
         base_name = os.path.basename(pdf_path)
         name_without_ext = os.path.splitext(base_name)[0]
         safe_model_name = model_name.replace("/", "_")
+        suffix = os.getenv("RUN_SUFFIX", "")
         
         # Salva o Markdown
-        md_filename = f"review_{name_without_ext}_{safe_model_name}.md"
+        md_filename = f"review_{name_without_ext}_{safe_model_name}{suffix}.md"
         with open(md_filename, "w", encoding="utf-8") as f:
             f.write(review_content)
         logger.info(f"Relatório Markdown salvo em: {md_filename}")
@@ -149,7 +135,7 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
     </div>
 </body>
 </html>"""
-            html_filename = f"review_{name_without_ext}_{safe_model_name}.html"
+            html_filename = f"review_{name_without_ext}_{safe_model_name}{suffix}.html"
             with open(html_filename, "w", encoding="utf-8") as f:
                 f.write(styled_html)
             logger.info(f"Relatório HTML salvo em: {html_filename}")
@@ -157,36 +143,6 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
             logger.error(f"Falha ao gerar HTML: {e}")
             
         # Geração do JSON no formato esperado
-        section_mapping = {
-            "título": "titulo",
-            "title": "titulo",
-            "resumo": "resumo",
-            "abstract": "resumo",
-            "introdução": "introducao",
-            "introduction": "introducao",
-            "referêncial teórico": "revisao_bibliografica",
-            "referencial teórico": "revisao_bibliografica",
-            "revisão da literatura": "revisao_bibliografica",
-            "revisão bibliográfica": "revisao_bibliografica",
-            "revisao bibliografica": "revisao_bibliografica",
-            "background": "revisao_bibliografica",
-            "related work": "revisao_bibliografica",
-            "metodologia": "metodologia",
-            "desenvolvimento": "metodologia",
-            "methodology": "metodologia",
-            "development": "metodologia",
-            "design": "metodologia",
-            "resultados": "resultados",
-            "results": "resultados",
-            "discussão": "conclusao",
-            "discussion": "conclusao",
-            "discussão e conclusão": "conclusao",
-            "conclusão": "conclusao",
-            "conclusion": "conclusao",
-            "referências": "referencias",
-            "references": "referencias"
-        }
-        
         parsed_sections = {}
         general_semantica = []
 
@@ -208,20 +164,13 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
                     continue
                     
                 lines = part.split('\n')
-                sec_title_line = lines[0].strip().lower()
-                
-                matched_sec_type = None
-                for sec_type in section_mapping.keys():
-                    if sec_type in sec_title_line:
-                        matched_sec_type = sec_type
-                        break
-                
-                if not matched_sec_type:
+                json_key = resolve_section_key(lines[0])
+                if not json_key:
                     # Se não achou seção canônica, tenta capturar no "geral" ou ignora
                     continue
                     
-                obs_normativa = parsed_sections.setdefault(section_mapping[matched_sec_type], {}).setdefault("observacao_normativa", [])
-                obs_semantica = parsed_sections.setdefault(section_mapping[matched_sec_type], {}).setdefault("observacao_semantica", [])
+                obs_normativa = parsed_sections.setdefault(json_key, {}).setdefault("observacao_normativa", [])
+                obs_semantica = parsed_sections.setdefault(json_key, {}).setdefault("observacao_semantica", [])
                 
                 # Regex para buscar Problema -> Sugestão -> Tipo
                 blocks_matches = re.finditer(
@@ -252,7 +201,7 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
         corpo_do_trabalho = {}
         # Preenche com as seções segmentadas (apenas para ter o texto no JSON)
         for sec in secoes:
-            json_key = section_mapping.get(sec.type, sec.type)
+            json_key = resolve_section_key(sec.type) or sec.type
             parsed_data = parsed_sections.get(json_key, {"observacao_normativa": [], "observacao_semantica": []})
             
             corpo_do_trabalho[json_key] = {
@@ -296,7 +245,7 @@ Você é um revisor acadêmico experiente. Sua tarefa é ler o texto completo do
             }
         }
         
-        json_filename = f"review_{name_without_ext}_{safe_model_name}.json"
+        json_filename = f"review_{name_without_ext}_{safe_model_name}{suffix}.json"
         with open(json_filename, "w", encoding="utf-8") as f:
             json.dump(json_report, f, indent=2, ensure_ascii=False)
         logger.info(f"Relatório JSON salvo em '{json_filename}'")

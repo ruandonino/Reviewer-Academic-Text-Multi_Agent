@@ -1,7 +1,6 @@
 import os
 from typing import Optional
 from src.utils.logger import get_logger
-from src.config import settings
 
 logger = get_logger()
 
@@ -171,13 +170,11 @@ class MinerUParser(BaseParser):
             if mineru_temp_output_dir and os.path.exists(mineru_temp_output_dir):
                 shutil.rmtree(mineru_temp_output_dir)
 
-def convert_pdf_to_markdown(pdf_path: str, parser_type: str = None, output_dir: str = "output_md") -> Optional[str]:
+def convert_pdf_to_markdown(pdf_path: str, parser_type: str = "mineru", output_dir: str = "output_md") -> Optional[str]:
     """
     Converte PDF para Markdown usando o parser especificado.
     Salva o resultado em um diretório e reutiliza se já existir.
     """
-    parser_type = parser_type or settings.default_parser
-    
     pdf_path_obj = Path(pdf_path)
     if not pdf_path_obj.exists():
         logger.error(f"Arquivo PDF não encontrado: {pdf_path}")

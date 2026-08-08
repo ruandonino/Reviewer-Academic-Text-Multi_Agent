@@ -1,6 +1,6 @@
 from typing import Tuple
 from src.utils.llm_client import safe_embedding as embedding
-from src.utils.llm_client import safe_completion as completion
+from src.utils.llm_client import calculate_completion_cost, safe_completion as completion
 from src.config import settings
 from src.utils.logger import get_logger
 
@@ -33,12 +33,11 @@ def gerar_embedding(texto: str) -> Tuple[list[float], int, float]:
             texto = response_comp.choices[0].message.content.strip()
             
             # Adiciona o custo da sumarização prévia
-            from litellm import completion_cost
             try:
-                comp_cost = completion_cost(completion_response=response_comp)
+                comp_cost = calculate_completion_cost(response_comp, settings.synthesizer_model)
                 total_cost += comp_cost
-            except Exception:
-                pass
+            except Exception as cost_error:
+                logger.warning(f"Não foi possível calcular o custo da sumarização para embedding: {cost_error}")
                 
             logger.info("Texto sumarizado com sucesso para o embedding.")
         except Exception as e:

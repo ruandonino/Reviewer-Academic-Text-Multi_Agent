@@ -5,7 +5,7 @@ import datetime
 import operator
 from typing import List, Dict, Any, Optional, Tuple
 from typing_extensions import TypedDict, Annotated
-from src.utils.llm_client import safe_completion as completion
+from src.utils.llm_client import calculate_completion_cost, safe_completion as completion
 from langgraph.graph import StateGraph, END, START
 
 from src.models.section import Section
@@ -14,6 +14,7 @@ from src.models.review import ReviewResult, Observation
 from src.utils.logger import get_logger
 
 logger = get_logger()
+
 
 # --- Logging e Leitura de Prompts ---
 
@@ -67,7 +68,12 @@ def load_agent_prompt(agent_name: str, router_instructions: str, section_type: s
     safe_section = section_type.lower().replace(" ", "_")
     if safe_section in ["revisão_da_literatura", "revisão_bibliográfica", "revisao_bibliografica", "background", "related_work"]:
         safe_section = "referencial_teórico"
+    elif safe_section in ["considerações_finais", "consideracoes_finais"]:
+        safe_section = "conclusão"
     safe_arch = architecture.lower()
+    # Compatibilidade com decisões antigas do roteador que usavam este alias.
+    if safe_arch == "single" and agent_name == "revisor_1":
+        agent_name = "revisor_unico"
     
     # Caminho ideal: src/prompts/{section_type}/{architecture}/{agent_name}.md
     ideal_dir = os.path.join(base_dir, safe_section, safe_arch)
@@ -97,6 +103,7 @@ def load_agent_prompt(agent_name: str, router_instructions: str, section_type: s
         prompt = template.replace("<output_formatting>", f"Diretrizes Específicas para esta Seção pelo Roteador:\n{router_instructions}\n\n<output_formatting>")
     else:
         prompt = f"{template}\n\nDiretrizes Específicas para esta Seção:\n{router_instructions}"
+
         
     return prompt
 
@@ -134,11 +141,10 @@ Tipo de seção: {section.type}
         content = response.choices[0].message.content.strip()
         
         tokens = response.usage.total_tokens if hasattr(response, 'usage') and response.usage else 0
-        from litellm import completion_cost
         try:
-            cost = completion_cost(completion_response=response)
-        except Exception:
-            logger.warning(f"Não foi possível calcular o custo do Agente para o modelo {model_id}")
+            cost = calculate_completion_cost(response, model_id)
+        except Exception as cost_error:
+            logger.warning(f"Não foi possível calcular o custo do Agente para o modelo {model_id}: {cost_error}")
             cost = 0.0
             
         # Parse the new markdown format

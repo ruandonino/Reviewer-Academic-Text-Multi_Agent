@@ -3,7 +3,7 @@ import os
 import uuid
 import datetime
 from typing import List, Dict, Any, Tuple
-from src.utils.llm_client import safe_completion as completion
+from src.utils.llm_client import calculate_completion_cost, safe_completion as completion
 from src.models.section import Section
 from src.models.router import RouterDecision, ModelAllocation
 from src.memory.vector_db import vector_db
@@ -105,6 +105,7 @@ def mount_router_prompt(section: Section, history: List[Dict[str, Any]]) -> str:
         - Arquiteturas com **mais agentes** multiplicam o custo total por chamada. Só escolha arquiteturas complexas quando a tarefa realmente se beneficiar de múltiplas perspectivas, validação cruzada ou consolidação.
         - Para tarefas simples, **uma arquitetura enxuta com um único o poucos agentes já é suficiente** e dramaticamente mais barata.
         - Considere o histórico: se seções semelhantes foram bem revisadas com arquiteturas simples, **não escale desnecessariamente**.
+        - Somente se a arquitetura mais simples com modelos médios/baixos também já tiver falhado no histórico é que você deve escalar para arquiteturas que utilizam mais agentes e portanto custo mais altos.
 
         ### 3. Alocação de Modelos por Agente
         - **Não use modelos ALTO custo em todos os agentes por padrão.** Distribua modelos de forma inteligente:
@@ -156,11 +157,10 @@ def route_section(section: Section) -> Tuple[RouterDecision, List[Dict[str, Any]
         content = response.choices[0].message.content.strip()
         
         tokens = response.usage.total_tokens if hasattr(response, 'usage') and response.usage else 0
-        from litellm import completion_cost
         try:
-            cost = completion_cost(completion_response=response)
-        except Exception:
-            logger.warning(f"Não foi possível calcular o custo do Roteador para o modelo {ROUTER_MODEL}")
+            cost = calculate_completion_cost(response, ROUTER_MODEL)
+        except Exception as cost_error:
+            logger.warning(f"N?o foi poss?vel calcular o custo do Roteador para o modelo {ROUTER_MODEL}: {cost_error}")
             cost = 0.0
             
         # Limpa formatação Markdown se o modelo retornar ```json ... ```
@@ -183,7 +183,7 @@ def route_section(section: Section) -> Tuple[RouterDecision, List[Dict[str, Any]
         # Fallback seguro
         fallback = RouterDecision(
             architecture="Single",
-            models=[ModelAllocation(agent_name="revisor_1", model_id=ROUTER_MODEL)],
+            models=[ModelAllocation(agent_name="revisor_unico", model_id=ROUTER_MODEL)],
             reasoning="Fallback devido a erro de inferência.",
             system_prompt="Revise a seção prestando atenção em clareza, norma culta e fluxo lógico."
         )

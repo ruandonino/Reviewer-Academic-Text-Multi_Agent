@@ -1,30 +1,29 @@
 import asyncio
 import os
 import sys
+import time
 from dotenv import load_dotenv
-
-load_dotenv(override=True)
-
 from src.ingestion.parsers import convert_pdf_to_markdown
 from src.ingestion.segmenter import segmentar_secoes
 from src.orchestration.graph import build_review_graph
 from src.agents.synthesizer_agent import synthesize_final_report
 from src.utils.logger import get_logger
+from src.utils.section_mapping import resolve_section_key
+from src.utils.llm_client import get_usage_log_path, start_usage_logging, summarize_usage_log
 
+load_dotenv(override=True)
 logger = get_logger()
 
 from src.models.review import ReviewResult
-
-import time
 
 async def process_section_async(section, app_graph):
     """
     Processa uma seção individual de forma assíncrona usando o LangGraph.
     """
-    import time
-    start_time = time.time()
     logger.info(f"==> Iniciando processamento para seção: {section.type} (Posição {section.position})")
     
+    section_started_at = time.monotonic()
+
     initial_state = {
         "section": section,
         "attempts": 0,
@@ -49,22 +48,31 @@ async def process_section_async(section, app_graph):
                 observations=[]
             )
             
-        elapsed_time = time.time() - start_time
-        logger.info(f"<== Processamento concluído para seção: {section.type} em {elapsed_time:.2f}s")
-        return (section, best_review, final_state.get("total_cost", 0.0), final_state.get("total_tokens", 0), elapsed_time)
+        logger.info(f"<== Processamento concluído para seção: {section.type}")
+        return (
+            section,
+            best_review,
+            final_state.get("total_cost", 0.0),
+            final_state.get("total_tokens", 0),
+            round(time.monotonic() - section_started_at, 3),
+        )
         
     except Exception as e:
-        elapsed_time = time.time() - start_time
         logger.error(f"Erro catastrófico ao processar seção {section.type}: {e}")
         fallback_review = ReviewResult(
             general_comments=f"Erro crítico no processamento da seção {section.type}: {str(e)}",
             observations=[]
         )
-        return (section, fallback_review, 0.0, 0, elapsed_time)
+        return (
+            section,
+            fallback_review,
+            0.0,
+            0,
+            round(time.monotonic() - section_started_at, 3),
+        )
 
 async def main():
-    import time
-    global_start_time = time.time()
+    process_started_at = time.monotonic()
     logger.info("Iniciando Sistema Multiagente de Revisão Acadêmica")
     
     # Verifica API Key para LiteLLM
@@ -83,22 +91,8 @@ async def main():
     
     # Fallback to a mock text if file doesn't exist for demo purposes
     if not os.path.exists(pdf_path):
-        base_name = os.path.basename(pdf_path)
-        name_without_ext = os.path.splitext(base_name)[0]
-        cached_md = None
-        for parser in ["mineru", "docling", "markitdown"]:
-            candidate = os.path.join("output_md", f"{name_without_ext}_{parser}.md")
-            if os.path.exists(candidate):
-                cached_md = candidate
-                break
-        
-        if cached_md:
-            logger.info(f"PDF {pdf_path} não encontrado, mas arquivo markdown cache encontrado em {cached_md}. Usando cache.")
-            with open(cached_md, "r", encoding="utf-8") as f:
-                md_text = f.read()
-        else:
-            logger.warning(f"Arquivo {pdf_path} não encontrado e nenhum cache em output_md/ foi localizado. Usando texto de demonstração.")
-            md_text = """
+        logger.warning(f"Arquivo {pdf_path} não encontrado. Usando texto de demonstração.")
+        md_text = """
 # Introdução
 Este é um trabalho sobre sistemas multiagentes. O objetivo é criar um framework escalável.
         
@@ -124,6 +118,7 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
         
     base_name = os.path.basename(pdf_path)
     name_without_ext = os.path.splitext(base_name)[0]
+    usage_log_path = start_usage_logging(name_without_ext)
 
     for sec in secoes:
         sec.document_id = name_without_ext
@@ -150,15 +145,21 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     
     # Etapa 8: Síntese Final
     logger.info("Etapa 8: Síntese Final")
-    reviews_with_sections = [(r[0], r[1]) for r in revisoes_validas]
-    relatorio_final, synth_tokens, synth_cost = synthesize_final_report(reviews_with_sections)
+    reviews_input = [(r[0], r[1]) for r in revisoes_validas]
+    relatorio_final, synth_tokens, synth_cost = synthesize_final_report(reviews_input)
     
     logger.info("=== RELATÓRIO FINAL ===")
-    try:
-        print(relatorio_final)
-    except Exception as e:
-        logger.warning(f"Não foi possível imprimir o relatório no console devido a restrições de encoding: {e}")
-
+    if os.getenv("PRINT_FINAL_REPORT", "").lower() in {"1", "true", "yes"}:
+        try:
+            print(relatorio_final)
+        except UnicodeEncodeError:
+            try:
+                encoding = sys.stdout.encoding or "utf-8"
+                print(relatorio_final.encode(encoding, errors="replace").decode(encoding))
+            except Exception:
+                logger.warning("Não foi possível imprimir o relatório final no console devido a problemas de codificação.")
+    else:
+        logger.info("Relatório final preparado; saída completa no console desabilitada.")
     
     # --- CÁLCULO E LOG DE CUSTOS ---
     costs_dir = os.path.join("logs", "costs")
@@ -172,7 +173,7 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
         section_costs[sec.type] = {
             "tokens": sec_tokens,
             "cost_usd": sec_cost,
-            "time_seconds": sec_time
+            "time_seconds": sec_time,
         }
         total_sections_cost += sec_cost
         total_sections_tokens += sec_tokens
@@ -184,7 +185,9 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
         "synthesizer_tokens": synth_tokens,
         "grand_total_cost_usd": total_sections_cost + synth_cost,
         "grand_total_tokens": total_sections_tokens + synth_tokens,
-        "sections_breakdown": section_costs
+        "sections_breakdown": section_costs,
+        "token_usage_log": get_usage_log_path(),
+        "token_breakdown": summarize_usage_log()
     }
     
     base_name = os.path.basename(pdf_path)
@@ -198,8 +201,9 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
         json.dump(global_cost, f, indent=2, ensure_ascii=False)
     logger.info(f"Relatório de Custos salvo em '{cost_filename}'")
     
-    report_filename = f"relatorio_final_{name_without_ext}.md"
-    json_filename = f"relatorio_final_{name_without_ext}.json"
+    suffix = os.getenv("RUN_SUFFIX", "")
+    report_filename = f"relatorio_final_{name_without_ext}{suffix}.md"
+    json_filename = f"relatorio_final_{name_without_ext}{suffix}.json"
     
     with open(report_filename, "w", encoding="utf-8") as f:
         f.write(relatorio_final)
@@ -236,7 +240,7 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     </div>
 </body>
 </html>"""
-        html_filename = f"relatorio_final_{name_without_ext}.html"
+        html_filename = f"relatorio_final_{name_without_ext}{suffix}.html"
         with open(html_filename, "w", encoding="utf-8") as f:
             f.write(styled_html)
         logger.info(f"Relatório HTML salvo em '{html_filename}'")
@@ -247,142 +251,137 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
     import json
     import re
     
-    section_mapping = {
-        "título": "titulo",
-        "title": "titulo",
-        "resumo": "resumo",
-        "abstract": "resumo",
-        "introdução": "introducao",
-        "introduction": "introducao",
-        "referêncial teórico": "revisao_bibliografica",
-        "referencial teórico": "revisao_bibliografica",
-        "revisão da literatura": "revisao_bibliografica",
-        "revisão bibliográfica": "revisao_bibliografica",
-        "revisao bibliografica": "revisao_bibliografica",
-        "background": "revisao_bibliografica",
-        "related work": "revisao_bibliografica",
-        "metodologia": "metodologia",
-        "desenvolvimento": "metodologia",
-        "methodology": "metodologia",
-        "development": "metodologia",
-        "design": "metodologia",
-        "resultados": "resultados",
-        "results": "resultados",
-        "discussão": "conclusao",
-        "discussion": "conclusao",
-        "discussão e conclusão": "conclusao",
-        "conclusão": "conclusao",
-        "conclusion": "conclusao",
-        "referências": "referencias",
-        "references": "referencias"
-    }
-    
     parsed_sections = {}
     general_semantica = []
 
-    # Extrair Visão Geral
-    # Procura por "Visão Geral", com ou sem número, e para no primeiro cabeçalho de Revisões Detalhadas ou Seção
-    section_1_match = re.search(r'##\s*(?:1\.\s*)?Visão Geral.*?(?=##\s*(?:2\.\s*)?Revisões Detalhadas|###\s*Seção:)', relatorio_final, re.DOTALL | re.IGNORECASE)
-    if section_1_match:
-        section_1_text = section_1_match.group(0)
-        # Buscar qualquer bullet point que não seja de seção
-        bullets = re.findall(r'\*\s*\*\*(.*?):\*\*\s*(.*?)(?=\n\s*\*|$)', section_1_text, re.DOTALL | re.IGNORECASE)
-        for title, text in bullets:
-            general_semantica.append(f"Problema: Visão Geral - {title.strip()}\nSugestão: {text.strip()}")
+    # O campo ``general`` do JSON representa apenas as recomendações finais do relatório.
+    # A Visão Geral é contextual e permanece exclusivamente no Markdown.
+    suggestions_match = re.search(
+        r'(?im)^###\s+Sugest.*Gerais.*$',
+        relatorio_final,
+    )
+    if suggestions_match:
+        suggestions_text = relatorio_final[suggestions_match.end():]
+        next_heading = re.search(r'(?m)^#{1,3}\s+', suggestions_text)
+        if next_heading:
+            suggestions_text = suggestions_text[:next_heading.start()]
 
-    # Extrair Revisões Detalhadas
-    # Procura desde as revisões detalhadas (ou da primeira Seção) até a Conclusão da Revisão (ou Aspectos Positivos) ou fim do arquivo
-    section_2_match = re.search(r'(?:##\s*(?:2\.\s*)?Revisões Detalhadas por Seção|###\s*Seção:\s*T[ÍI]TULO)(.*?)(?:##\s*(?:3\.\s*)?Conclusão da Revisão|###\s*Aspectos Positivos|$)', relatorio_final, re.DOTALL | re.IGNORECASE)
-    
+        for suggestion in re.findall(
+            r'(?ms)^\s*(?:\d+\.\s+|[-*+]\s+)(.*?)(?=^\s*(?:\d+\.\s+|[-*+]\s+)|\Z)',
+            suggestions_text,
+        ):
+            suggestion = suggestion.strip()
+            if suggestion:
+                general_semantica.append(
+                    f"Problema: Recomendações Gerais de Melhoria\nSugestão: {suggestion}"
+                )
+
+    section_2_match = re.search(r'## 2\..*?(?=## 3\.)', relatorio_final, re.DOTALL | re.IGNORECASE)
     if section_2_match:
-        # Se encontrou pelo "### Seção: TÍTULO", o match.group(1) perde o título, então vamos juntar
-        section_2_text = relatorio_final[section_2_match.start():section_2_match.end()]
-        
-        # Split por subseções H3 ou H4
-        parts = re.split(r'\n(?:####|###)\s+', section_2_text)
-        for part in parts:
-            if not part.strip():
-                continue
+        section_2_text = section_2_match.group(0)
+        parts = re.split(r'\n\s*(?:###|##)\s+\d+\.\d+\s+', section_2_text)
+        for part in parts[1:]:
             lines = part.split('\n')
-            sec_title_line = lines[0].lower()
-            
-            matched_sec_type = None
-            for sec_key, json_key in section_mapping.items():
-                if re.search(rf'{re.escape(sec_key)}', sec_title_line, re.IGNORECASE):
-                    matched_sec_type = sec_key
-                    break
-            
-            if not matched_sec_type:
+            json_key = resolve_section_key(lines[0])
+            if not json_key:
                 continue
                 
             obs_normativa = []
             obs_semantica = []
             
-            # Regex robusto que busca os blocos de problemas, sugestões e tipos
-            # Captura o texto entre as etiquetas, lidando com quebras de linha e identação
-            pattern_blocks = re.compile(
-                r'Problema:\s*(.*?)\s*Sugestão:\s*(.*?)\s*Tipo:\s*(.*?)(?=Trecho:|Problema:|$)',
+            matches = list(re.finditer(
+                r'\*\*Problema[^*]*\*\*\s*(.*?)\s*(?:[-*]\s*)?\*\*Sugest[^*]*\*\*\s*(.*?)\s*(?:[-*]\s*)?\*\*Tipo[^*]*\*\*\s*(.*?)(?=\s*(?:[-*]\s*)?\*\*Problema[^*]*\*\*|\Z)',
+                part,
                 re.DOTALL | re.IGNORECASE
-            )
-            
-            for match in pattern_blocks.finditer(part):
-                prob = match.group(1).strip().strip('*').strip()
-                sug = match.group(2).strip().strip('*').strip()
-                tipo = match.group(3).strip().lower().split('\n')[0].strip().strip('*').strip()
-                
-                suggestion_text = f"Problema: {prob}\nSugestão: {sug}"
-                if "normativa" in tipo:
-                    if suggestion_text not in obs_normativa:
-                        obs_normativa.append(suggestion_text)
-                else:
-                    if suggestion_text not in obs_semantica:
-                        obs_semantica.append(suggestion_text)
+            ))
+            for match in matches:
+                try:
+                    prob = match.group(1).strip()
+                    sug = match.group(2).strip()
+                    tipo = match.group(3).strip().lower()
                     
-            mapped_key = section_mapping[matched_sec_type]
-            if mapped_key not in parsed_sections:
-                parsed_sections[mapped_key] = {
-                    "observacao_normativa": [],
-                    "observacao_semantica": []
+                    # Clean trailing bullet punctuation or spaces
+                    prob = re.sub(r'\s*[\*_-]+\s*$', '', prob).strip()
+                    sug = re.sub(r'\s*[\*_-]+\s*$', '', sug).strip()
+                    tipo = re.sub(r'[^a-z]', '', tipo)
+                    
+                    suggestion_text = f"Problema: {prob}\nSugestão: {sug}"
+                    if "normativa" in tipo:
+                        obs_normativa.append(suggestion_text)
+                    else:
+                        obs_semantica.append(suggestion_text)
+                except Exception as e:
+                    pass
+
+            parsed_sections[json_key] = {
+                "observacao_normativa": obs_normativa,
+                "observacao_semantica": obs_semantica
+            }
+
+    # Aceita sínteses com níveis de cabeçalho diferentes e sem a seção final.
+    detailed_start = re.search(r'(?m)^#{2,4}\s+2\.\s+', relatorio_final)
+    if detailed_start:
+        detailed_text = relatorio_final[detailed_start.end():]
+        detailed_end = re.search(r'(?m)^#{2,4}\s+3\.\s+', detailed_text)
+        if detailed_end:
+            detailed_text = detailed_text[:detailed_end.start()]
+
+        headings = list(re.finditer(
+            r'(?m)^#{3,4}\s+(?:2\.\d+\s+)?(.+?)\s*$', detailed_text
+        ))
+        if headings:
+            parsed_sections = {}
+            for index, heading in enumerate(headings):
+                json_key = resolve_section_key(heading.group(1))
+                if not json_key:
+                    continue
+
+                next_start = headings[index + 1].start() if index + 1 < len(headings) else len(detailed_text)
+                section_text = detailed_text[heading.end():next_start]
+                obs_normativa = []
+                obs_semantica = []
+                for match in re.finditer(
+                    r'\*\*Problema[^*]*\*\*\s*(.*?)\s*(?:[-*]\s*)?\*\*Sugest[^*]*\*\*\s*(.*?)\s*(?:[-*]\s*)?\*\*Tipo[^*]*\*\*\s*(.*?)(?=\s*(?:[-*]\s*)?\*\*Problema[^*]*\*\*|\Z)',
+                    section_text,
+                    re.DOTALL | re.IGNORECASE,
+                ):
+                    prob = re.sub(r'\s*[\*_-]+\s*$', '', match.group(1)).strip()
+                    sug = re.sub(r'\s*[\*_-]+\s*$', '', match.group(2)).strip()
+                    tipo = re.sub(r'[^a-z]', '', match.group(3).lower())
+                    observation = f"Problema: {prob}\nSugestão: {sug}"
+                    if "normativa" in tipo:
+                        obs_normativa.append(observation)
+                    else:
+                        obs_semantica.append(observation)
+
+                parsed_sections[json_key] = {
+                    "observacao_normativa": obs_normativa,
+                    "observacao_semantica": obs_semantica,
                 }
-                
-            for obs in obs_normativa:
-                if obs not in parsed_sections[mapped_key]["observacao_normativa"]:
-                    parsed_sections[mapped_key]["observacao_normativa"].append(obs)
-            for obs in obs_semantica:
-                if obs not in parsed_sections[mapped_key]["observacao_semantica"]:
-                    parsed_sections[mapped_key]["observacao_semantica"].append(obs)
             
     corpo_do_trabalho = {}
     for sec, rev, sec_cost, sec_tokens, sec_time in revisoes_validas:
-        json_key = section_mapping.get(sec.type, sec.type)
+        json_key = resolve_section_key(sec.type) or sec.type
         
         parsed_data = parsed_sections.get(json_key, {"observacao_normativa": [], "observacao_semantica": []})
         
-        # If the key already exists (e.g., from a different chunk of the same section), append to it, but don't overwrite the base data
-        if json_key in corpo_do_trabalho:
-            corpo_do_trabalho[json_key]["texto"] += "\n...\n" + (sec.text[:500] + "..." if len(sec.text) > 500 else sec.text)
-            corpo_do_trabalho[json_key]["revisor"][0]["1"]["cost_usd"] += sec_cost
-            corpo_do_trabalho[json_key]["revisor"][0]["1"]["time_seconds"] += sec_time
-        else:
-            corpo_do_trabalho[json_key] = {
-                "presente": True,
-                "pagina_inicio": 1,
-                "pagina_fim": 1,
-                "texto": sec.text[:500] + "..." if len(sec.text) > 500 else sec.text,
-                "revisor": [
-                    {
-                        "1": {
-                            "observacao_normativa": parsed_data["observacao_normativa"],
-                            "observacao_semantica": parsed_data["observacao_semantica"],
-                            "cost_usd": sec_cost,
-                            "time_seconds": sec_time
-                        }
-                    }
-                ]
-            }
+        corpo_do_trabalho[json_key] = {
+            "presente": True,
+            "pagina_inicio": 1,
+            "pagina_fim": 1,
+            "texto": sec.text[:500] + "..." if len(sec.text) > 500 else sec.text,
+            "review_metrics": {
+                "total_cost_usd": sec_cost,
+                "total_tokens": sec_tokens,
+                "total_time_seconds": sec_time,
+            },
+            "revisor": [
+                {
+                    "1": parsed_data
+                }
+            ]
+        }
         
-    global_elapsed_time = time.time() - global_start_time
-    
     json_report = {
         "metadata": {
             "tcc_id": name_without_ext,
@@ -395,7 +394,7 @@ O sistema demonstrou eficácia na detecção de erros semânticos.
             "num_paginas": 0,
             "total_tokens": global_cost["grand_total_tokens"],
             "total_cost_usd": global_cost["grand_total_cost_usd"],
-            "total_time_seconds": global_elapsed_time
+            "total_time_seconds": round(time.monotonic() - process_started_at, 3)
         },
         "corpo_do_trabalho": corpo_do_trabalho,
         "general": {

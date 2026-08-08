@@ -133,8 +133,10 @@ def summarizer_node(state: ReviewState) -> dict:
         cost_usd=total_cost,
     )
 
-    # Optionally could update total tokens/cost, but not needed for tests
-    return {}
+    return {
+        "total_tokens": sum_tokens,
+        "total_cost": sum_cost,
+    }
 
 
 # --- Arestas Condicionais ---
